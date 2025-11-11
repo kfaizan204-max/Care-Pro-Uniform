@@ -3,93 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uniform Stock Manager | مدير المخزون</title>
+<title>Uniform Stock Manager</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--blue1:#89f7fe;--blue2:#66a6ff;--text:#333;}
-body{font-family:'Roboto',sans-serif;margin:0;padding:0;
-background:linear-gradient(120deg,var(--blue1),var(--blue2));
-background-size:400% 400%;animation:gradientBG 15s ease infinite;color:var(--text);}
-@keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:rgba(255,255,255,0.8);backdrop-filter:blur(6px);flex-wrap:wrap;text-align:center;}
-header img{height:60px;animation:breathe 3s ease-in-out infinite alternate;}
-@keyframes breathe{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
-header h1{font-size:24px;margin:10px auto;flex:1;text-align:center;}
-button{padding:8px 14px;margin:4px;cursor:pointer;border:none;border-radius:6px;background:var(--blue2);color:#fff;font-weight:600;transition:.3s;}
-button:hover{background:var(--blue1);color:#000;}
-section{background:rgba(255,255,255,0.95);margin:20px;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-h2{text-align:center;margin-top:0;}
-table{width:100%;border-collapse:collapse;margin-top:15px;}
-th,td{border:1px solid #aaa;padding:8px;text-align:center;}
-td.editable{background:#eef;cursor:pointer;}
-input,select{width:100%;padding:6px;margin-top:5px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;}
-input[readonly]{background:#eee;}
-form div{margin-bottom:10px;}
-.hidden{display:none;}
-.rtl{direction:rtl;text-align:right;font-family:'Tajawal',sans-serif;}
-@media(max-width:600px){header h1{font-size:20px;}section{margin:10px;padding:15px;}}
+  :root { --blue1:#89f7fe; --blue2:#66a6ff; --text:#333; }
+  body { font-family:'Roboto',sans-serif; margin:0; padding:0; background:linear-gradient(120deg,var(--blue1),var(--blue2)); background-size:400% 400%; animation:gradientBG 15s ease infinite; color:var(--text); }
+  @keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  header{display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(6px); flex-wrap:wrap; text-align:center;}
+  header img{height:60px;animation:breathe 3s ease-in-out infinite alternate;}
+  @keyframes breathe{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
+  header h1{font-size:24px;margin:10px auto;flex:1;text-align:center;}
+  button{padding:6px 12px;margin:3px;cursor:pointer;border:none;border-radius:5px;background:var(--blue2);color:#fff;font-weight:600;transition:.3s;}
+  button:hover{background:var(--blue1);color:#000;}
+  section{background:rgba(255,255,255,0.95);margin:20px;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
+  h2{text-align:center;margin-top:0;}
+  table{width:100%;border-collapse:collapse;margin-top:15px;}
+  th,td{border:1px solid #aaa;padding:8px;text-align:center;}
+  input,select{width:100%;padding:6px;margin-top:5px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;}
+  input[readonly]{background:#eee;}
+  form div{margin-bottom:10px;}
+  .hidden{display:none;}
+  .rtl{direction:rtl;text-align:right;font-family:'Tajawal',sans-serif;}
+  @media(max-width:600px){header h1{font-size:20px;} section{margin:10px;padding:15px;}}
 </style>
 </head>
 <body>
 
 <header>
   <img src="https://i.ibb.co/N0Bdr5N/Care-Pro-Logo-Jan-2025-Transparent.png" alt="Logo">
-  <h1 id="title">Uniform Stock Manager</h1>
-  <button onclick="toggleLang()" id="langBtn">العربية</button>
+  <h1>Uniform Stock Manager</h1>
 </header>
 
+<!-- STOCK DETAILS SECTION -->
 <section id="stockSection">
-  <h2 id="stockTitle">Stock</h2>
+  <h2>Stock Details</h2>
+  <button onclick="addStockRow()">Add Row</button>
+  <button onclick="saveStock()">Save Stock</button>
+  <button onclick="exportStock()">Export Stock CSV</button>
   <table id="stockTable">
     <thead>
       <tr>
         <th>Item</th>
-        <th>Manual Qty</th>
-        <th>Delivered Qty</th>
-        <th>Available Qty</th>
+        <th>Initial Qty</th>
+        <th>Added Qty</th>
+        <th>Delivered</th>
+        <th>Available</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 </section>
 
-<button onclick="exportReport()" id="exportReportBtn">Export Delivery Report</button>
-
+<!-- LOGIN SECTION -->
 <section id="loginSection">
-  <h2 id="loginTitle">Login</h2>
-  <div id="loginDiv">
+  <h2>Login to Delivery Section</h2>
+  <div>
     <div><input type="text" id="userId" placeholder="User ID"></div>
     <div><input type="password" id="password" placeholder="Password"></div>
-    <button onclick="login()" id="loginBtn">Login</button>
+    <button onclick="login()">Login</button>
   </div>
 </section>
 
-<section id="adminSection" class="hidden">
-  <h2>Add Stock Manually</h2>
-  <form id="stockForm">
-    <div><input type="text" id="newItem" placeholder="Item Name" required></div>
-    <div><input type="number" id="newQty" placeholder="Manual Qty" min="1" required></div>
-    <button type="submit">Add / Update Stock</button>
-  </form>
-
+<!-- DELIVERY ENTRY SECTION -->
+<section id="deliverySection" class="hidden">
   <h2>Delivery / Return Entry</h2>
   <form id="entryForm">
     <div><input type="text" id="iqama" placeholder="Iqama" required></div>
     <div><input type="text" id="emp" placeholder="Employee Name" required></div>
     <div><input type="date" id="date" required></div>
-    <div><select id="item"></select></div>
-    <div><input type="number" id="qty" placeholder="Quantity" required min="1"></div>
+    <div>
+      <select id="itemSelect"></select>
+      <input type="number" id="qty" placeholder="Quantity" required min="1">
+    </div>
     <div><input type="text" id="client" placeholder="Client"></div>
     <div><input type="text" id="note" placeholder="Note"></div>
     <button type="submit">Add Entry</button>
   </form>
 
   <h2>Transactions</h2>
+  <button onclick="exportReport()">Export Report CSV</button>
   <table id="transTable">
     <thead>
       <tr>
-        <th>ID</th><th>Iqama</th><th>Name</th><th>Date</th>
-        <th>Item</th><th>Qty</th><th>Client</th><th>Note</th><th>Action</th>
+        <th>ID</th><th>Iqama</th><th>Name</th><th>Date</th><th>Item</th><th>Qty</th><th>Client</th><th>Note</th><th>Action</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -97,126 +94,121 @@ form div{margin-bottom:10px;}
 </section>
 
 <script>
-let lang='en';
-const BASE='https://your-vercel-deployment.vercel.app/api'; // replace
-const USERS=[{id:'admin',password:'1234'}];
-let stockData=[],transactions=[];
+let stockData = [];
+let transactions = [];
+const USERS = [{id:'admin',password:'1234'}];
 
-function toggleLang(){
-  lang=lang==='en'?'ar':'en';
-  document.body.className=lang==='ar'?'rtl':'';
-}
-
-function renderStock(){
-  const tbody=document.querySelector('#stockTable tbody'); tbody.innerHTML='';
-  stockData.forEach(r=>{
-    const delivered = transactions.filter(tr=>tr.item===r.Item).reduce((a,b)=>a+b.qty,0);
-    const available = r.ManualQty - delivered;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.Item}</td>
-                  <td class="editable" data-item="${r.Item}">${r.ManualQty}</td>
-                  <td>${delivered}</td>
-                  <td>${available}</td>`;
-    tbody.appendChild(tr);
-  });
-  if(document.getElementById('adminSection').classList.contains('hidden')) return;
-  document.querySelectorAll('td.editable').forEach(td=>{
-    td.addEventListener('click',()=>editCell(td));
-  });
-}
-
-function editCell(td){
-  const oldVal=td.innerText;
-  td.innerHTML=`<input type="number" min="0" value="${oldVal}">`;
-  const input=td.querySelector('input');
-  input.focus();
-  input.onblur=async function(){
-    const newVal=parseInt(input.value);
-    const itemName=td.dataset.item;
-    const row=stockData.find(r=>r.Item===itemName);
-    if(row){ row.ManualQty=newVal; await fetch(BASE+'/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});}
-    renderStock();
-  };
-}
-
+// Load stock from backend
 async function loadStock(){
-  const res=await fetch(BASE+'/stock'); stockData=await res.json(); renderStock(); populateItemSelect();
+  try{
+    const res = await fetch('/api/stock'); // Your Vercel stock API
+    stockData = await res.json();
+  }catch(e){ console.error(e);}
+  renderStock();
+  renderItemSelect();
 }
 
-async function loadTransactions(){
-  const res=await fetch(BASE+'/transactions'); transactions=await res.json(); renderTransactions(); renderStock();
-}
-
-function renderTransactions(){
-  const tbody=document.querySelector('#transTable tbody'); tbody.innerHTML='';
-  transactions.forEach(tn=>{
+// Render stock table
+function renderStock(){
+  const tbody = document.querySelector('#stockTable tbody');
+  tbody.innerHTML='';
+  stockData.forEach((row,i)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${tn.id}</td><td>${tn.iqama}</td><td>${tn.emp}</td><td>${tn.date}</td><td>${tn.item}</td><td>${tn.qty}</td><td>${tn.client}</td><td>${tn.note}</td>
-    <td><button onclick="deleteTrans('${tn.id}')">🗑</button></td>`;
+    tr.innerHTML=`<td contenteditable="true">${row.Item}</td>
+                    <td><input type="number" value="${row.Initial || 0}" readonly></td>
+                    <td><input type="number" value="${row.Added || 0}"></td>
+                    <td><input type="number" value="${row.Delivered || 0}" readonly></td>
+                    <td><input type="number" value="${(row.Initial||0)+(row.Added||0)-(row.Delivered||0)}" readonly></td>
+                    <td><button onclick="deleteRow(${i})">Delete</button></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function populateItemSelect(){
-  const sel=document.getElementById('item'); sel.innerHTML='';
-  stockData.forEach(s=>sel.innerHTML+=`<option>${s.Item}</option>`);
+// Add stock row
+function addStockRow(){ stockData.push({Item:'',Initial:0,Added:0,Delivered:0}); renderStock(); renderItemSelect(); }
+
+// Delete stock row
+function deleteRow(i){ stockData.splice(i,1); renderStock(); renderItemSelect(); }
+
+// Save stock to backend
+async function saveStock(){
+  stockData.forEach(row=>row.Available=(row.Initial||0)+(row.Added||0)-(row.Delivered||0));
+  await fetch('/api/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
+  alert('Stock saved!');
+  renderStock(); renderItemSelect();
 }
 
+// Render item select in delivery form
+function renderItemSelect(){
+  const select = document.getElementById('itemSelect');
+  select.innerHTML='';
+  stockData.forEach(row=>{ if(row.Item) select.innerHTML+=`<option>${row.Item}</option>`; });
+}
+
+// LOGIN FUNCTION
 function login(){
   const id=document.getElementById('userId').value.trim();
   const password=document.getElementById('password').value.trim();
-  if(USERS.some(u=>u.id===id && u.password===password)){
-    document.getElementById('loginSection').style.display='none';
-    document.getElementById('adminSection').classList.remove('hidden');
-    loadStock(); loadTransactions();
-  } else alert('Invalid credentials');
+  const user=USERS.find(u=>u.id===id&&u.password===password);
+  if(user){ document.getElementById('deliverySection').classList.remove('hidden'); document.getElementById('loginSection').style.display='none'; loadTransactions(); }
+  else alert('Invalid credentials');
 }
 
-document.getElementById('stockForm').onsubmit=async function(e){
-  e.preventDefault();
-  const name=document.getElementById('newItem').value.trim();
-  const qty=parseInt(document.getElementById('newQty').value);
-  const existing=stockData.find(s=>s.Item===name);
-  if(existing) existing.ManualQty+=qty;
-  else stockData.push({Item:name,ManualQty:qty});
-  await fetch(BASE+'/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
-  renderStock(); populateItemSelect(); e.target.reset();
-};
-
+// DELIVERY FORM SUBMIT
 document.getElementById('entryForm').onsubmit=async function(e){
   e.preventDefault();
-  const entry={
-    id:Date.now().toString(),
-    iqama:iqama.value,
-    emp:emp.value,
-    date:date.value,
-    item:item.value,
-    qty:parseInt(qty.value),
-    client:client.value,
-    note:note.value
-  };
-  const stockRow=stockData.find(s=>s.Item===entry.item);
-  const delivered=transactions.filter(tr=>tr.item===entry.item).reduce((a,b)=>a+b.qty,0);
-  const available=stockRow.ManualQty - delivered;
-  if(entry.qty>available){alert('Not enough stock'); return;}
-  transactions.push(entry);
-  await fetch(BASE+'/transactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)});
-  renderTransactions(); renderStock(); e.target.reset();
-};
-
-async function deleteTrans(id){
-  const idx=transactions.findIndex(t=>t.id===id); if(idx>-1) transactions.splice(idx,1);
-  await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
-  renderTransactions(); renderStock();
+  const itemName=document.getElementById('itemSelect').value;
+  const qty=parseInt(document.getElementById('qty').value);
+  const stockRow=stockData.find(s=>s.Item===itemName);
+  if(!stockRow || ((stockRow.Initial||0)+(stockRow.Added||0)-stockRow.Delivered<qty)){
+    alert('Not enough stock'); return;
+  }
+  stockRow.Delivered = (stockRow.Delivered||0)+qty;
+  transactions.push({
+    id:Date.now(), iqama:iqama.value, emp:emp.value, date:date.value,
+    item:itemName, qty:qty, client:client.value, note:note.value
+  });
+  await saveStock();
+  renderTransactions();
+  e.target.reset();
 }
 
+// Render transactions table
+function renderTransactions(){
+  const tbody=document.querySelector('#transTable tbody');
+  tbody.innerHTML='';
+  transactions.forEach((t,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${t.id}</td><td>${t.iqama}</td><td>${t.emp}</td><td>${t.date}</td><td>${t.item}</td><td>${t.qty}</td><td>${t.client}</td><td>${t.note}</td>
+    <td><button onclick="deleteTrans(${i})">🗑</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Delete transaction
+function deleteTrans(i){
+  const t=transactions[i];
+  const stockRow=stockData.find(s=>s.Item===t.item);
+  if(stockRow) stockRow.Delivered-=t.qty;
+  transactions.splice(i,1);
+  renderTransactions();
+  saveStock();
+}
+
+// EXPORT CSV
+function exportStock(){
+  let csv='Item,Initial,Added,Delivered,Available\n';
+  stockData.forEach(r=>csv+=`${r.Item},${r.Initial},${r.Added},${r.Delivered},${(r.Initial||0)+(r.Added||0)-(r.Delivered||0)}\n`);
+  downloadCSV(csv,'stock.csv');
+}
 function exportReport(){
   let csv='ID,Iqama,Name,Date,Item,Qty,Client,Note\n';
-  transactions.forEach(tn=>csv+=`${tn.id},${tn.iqama},${tn.emp},${tn.date},${tn.item},${tn.qty},${tn.client},${tn.note}\n`);
-  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='delivery_report.csv'; a.click(); URL.revokeObjectURL(url);
+  transactions.forEach(t=>csv+=`${t.id},${t.iqama},${t.emp},${t.date},${t.item},${t.qty},${t.client},${t.note}\n`);
+  downloadCSV(csv,'transactions.csv');
 }
+function downloadCSV(csv,name){ const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
 
+// Initial load
 loadStock();
 </script>
 </body>
