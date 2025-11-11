@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Uniform Stock Manager | مدير المخزون</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -114,24 +114,22 @@
 
 <script>
 let lang='en';
-const BASE='https://your-vercel-deployment.vercel.app/api'; // replace
-const USERS=[{id:'admin',password:'1234'}];
+const BASE='https://your-vercel-deployment.vercel.app/api'; // replace with your Vercel URL
+const ADMIN={id:'admin',password:'1234'};
 let stockData=[],transactions=[];
 
 const t={
   en:{
-    title:'Uniform Stock Manager',
-    stock:'Stock',login:'Login',entry:'Delivery / Return Entry',trans:'Transactions',
-    exportStock:'Export Full Stock',exportReport:'Export Delivery Report',
-    user:'User ID',pass:'Password',loginBtn:'Login',addEntry:'Add Entry',
-    notEnough:'Not enough stock',invalid:'Invalid credentials',langBtn:'العربية'
+    title:'Uniform Stock Manager', stock:'Stock', login:'Login', entry:'Delivery / Return Entry', trans:'Transactions',
+    exportStock:'Export Full Stock', exportReport:'Export Delivery Report',
+    user:'User ID', pass:'Password', loginBtn:'Login', addEntry:'Add Entry',
+    notEnough:'Not enough stock', invalid:'Invalid credentials', langBtn:'العربية'
   },
   ar:{
-    title:'إدارة المخزون',
-    stock:'المخزون',login:'تسجيل الدخول',entry:'تسليم / إرجاع',trans:'المعاملات',
-    exportStock:'تصدير المخزون الكامل',exportReport:'تصدير تقرير التسليم',
-    user:'معرف المستخدم',pass:'كلمة المرور',loginBtn:'دخول',addEntry:'إضافة إدخال',
-    notEnough:'الكمية غير كافية',invalid:'بيانات الدخول غير صحيحة',langBtn:'English'
+    title:'إدارة المخزون', stock:'المخزون', login:'تسجيل الدخول', entry:'تسليم / إرجاع', trans:'المعاملات',
+    exportStock:'تصدير المخزون الكامل', exportReport:'تصدير تقرير التسليم',
+    user:'معرف المستخدم', pass:'كلمة المرور', loginBtn:'دخول', addEntry:'إضافة إدخال',
+    notEnough:'الكمية غير كافية', invalid:'بيانات الدخول غير صحيحة', langBtn:'English'
   }
 };
 
@@ -141,35 +139,28 @@ function setPlaceholder(id,key){document.getElementById(id).placeholder=t[lang][
 function toggleLang(){
   lang=lang==='en'?'ar':'en';
   document.body.className=lang==='ar'?'rtl':'';
-  setText('title','title');
-  setText('stockTitle','stock');
-  setText('loginTitle','login');
-  setText('entryTitle','entry');
-  setText('transTitle','trans');
-  setText('exportStockBtn','exportStock');
-  setText('exportReportBtn','exportReport');
-  setText('loginBtn','loginBtn');
-  setText('addEntryBtn','addEntry');
+  setText('title','title'); setText('stockTitle','stock'); setText('loginTitle','login');
+  setText('entryTitle','entry'); setText('transTitle','trans'); setText('exportStockBtn','exportStock');
+  setText('exportReportBtn','exportReport'); setText('loginBtn','loginBtn'); setText('addEntryBtn','addEntry');
   document.getElementById('langBtn').innerText=t[lang]['langBtn'];
-  setPlaceholder('userId','user');
-  setPlaceholder('password','pass');
+  setPlaceholder('userId','user'); setPlaceholder('password','pass');
 }
 
-async function login(){
+function login(){
   const id=document.getElementById('userId').value.trim();
   const password=document.getElementById('password').value.trim();
-  const res=await fetch(BASE+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,password})});
-  const data=await res.json();
-  if(data.success){
+  if(id===ADMIN.id && password===ADMIN.password){
     document.getElementById('loginSection').style.display='none';
     document.getElementById('mainApp').classList.remove('hidden');
-    await loadStock(); await loadTransactions(); setupEntryForm();
-  }else alert(t[lang].invalid);
+    loadStock(); loadTransactions(); setupEntryForm();
+  } else alert(t[lang].invalid);
 }
 
 async function loadStock(){
-  const res=await fetch(BASE+'/stock'); stockData=await res.json(); renderStock();
+  const res=await fetch(BASE+'/stock');
+  stockData=await res.json(); renderStock();
 }
+
 function renderStock(){
   const tbody=document.querySelector('#stockTable tbody');
   tbody.innerHTML='';
@@ -184,8 +175,10 @@ function renderStock(){
 }
 
 async function loadTransactions(){
-  const res=await fetch(BASE+'/transactions'); transactions=await res.json(); renderTransactions();
+  const res=await fetch(BASE+'/transactions');
+  transactions=await res.json(); renderTransactions();
 }
+
 function renderTransactions(){
   const tbody=document.querySelector('#transTable tbody'); tbody.innerHTML='';
   transactions.forEach(tn=>{
@@ -204,28 +197,29 @@ function setupEntryForm(){
     e.preventDefault();
     const entry={
       id:Date.now().toString(),
-      iqama:iqama.value,emp:emp.value,date:date.value,
-      item:itemSel.value,size:sizeSel.value,
-      qty:parseInt(qty.value),client:client.value,note:note.value
+      iqama:iqama.value, emp:emp.value, date:date.value,
+      item:itemSel.value, size:sizeSel.value,
+      qty:parseInt(qty.value), client:client.value, note:note.value
     };
     const row=stockData.find(r=>r.Item===entry.item&&r.Size===entry.size);
     if(!row||row.Quantity<entry.qty){alert(t[lang].notEnough);return;}
     row.Quantity-=entry.qty;
     await fetch(BASE+'/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
     await fetch(BASE+'/transactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)});
-    await loadStock(); await loadTransactions(); form.reset();
+    loadStock(); loadTransactions(); form.reset();
   };
 }
 
 function updateSizes(){
-  const item=itemSel.value;
+  const item=document.getElementById('item').value;
+  const sizeSel=document.getElementById('size');
   const sizes=stockData.filter(r=>r.Item===item).map(r=>r.Size);
   sizeSel.innerHTML=''; sizes.forEach(s=>sizeSel.innerHTML+=`<option>${s}</option>`);
 }
 
 async function deleteTrans(id){
   await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
-  await loadStock(); await loadTransactions();
+  loadStock(); loadTransactions();
 }
 
 function exportStock(){
@@ -246,5 +240,6 @@ function downloadCSV(csv,name){
 
 loadStock();
 </script>
+
 </body>
 </html>
