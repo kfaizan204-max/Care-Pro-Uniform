@@ -4,301 +4,261 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uniform Stock Manager</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root { --blue1:#89f7fe; --blue2:#66a6ff; --text:#333; }
-body { font-family:'Roboto',sans-serif; margin:0; padding:0; background:linear-gradient(120deg,var(--blue1),var(--blue2)); background-size:400% 400%; animation:gradientBG 15s ease infinite; color:var(--text); }
-@keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-header{display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(6px); flex-wrap:wrap; text-align:center;}
-header img{height:60px;animation:breathe 3s ease-in-out infinite alternate;}
-@keyframes breathe{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
-header h1{font-size:24px;margin:10px auto;flex:1;text-align:center;}
-button{padding:6px 12px;margin:3px;cursor:pointer;border:none;border-radius:5px;background:var(--blue2);color:#fff;font-weight:600;transition:.3s;}
-button:hover{background:var(--blue1);color:#000;}
-section{background:rgba(255,255,255,0.95);margin:20px;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
-h2{text-align:center;margin-top:0;}
-table{width:100%;border-collapse:collapse;margin-top:15px;}
-th,td{border:1px solid #aaa;padding:8px;text-align:center;}
-input,select{width:100%;padding:6px;margin-top:5px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;}
-input[readonly]{background:#eee;}
-.hidden{display:none;}
-.rtl{direction:rtl;text-align:right;font-family:'Tajawal',sans-serif;}
+:root { --blue1:#89f7fe; --blue2:#66a6ff; }
+body {
+  font-family:sans-serif;
+  margin:0; padding:0;
+  background:linear-gradient(120deg,var(--blue1),var(--blue2));
+  background-size:400% 400%;
+  animation: gradientBG 15s ease infinite;
+  color:#333;
+}
+@keyframes gradientBG {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+header, section {
+  padding:15px; margin:10px;
+  background:rgba(255,255,255,0.85);
+  border-radius:10px; backdrop-filter:blur(5px);
+}
+table { width:100%; border-collapse:collapse; margin-top:10px;}
+th,td { border:1px solid #aaa; padding:6px; text-align:center;}
+input, select { width:100%; padding:5px; margin:2px 0;}
+button {
+  padding:6px 12px; margin:4px;
+  border:none; border-radius:6px;
+  background:#66a6ff; color:#fff; cursor:pointer; font-weight:bold;
+}
+button:hover { background:#89f7fe; color:#000;}
+#saveMsg { color:green; font-weight:bold; display:none; }
 </style>
 </head>
 <body>
 
 <header>
-  <img src="https://i.ibb.co/N0Bdr5N/Care-Pro-Logo-Jan-2025-Transparent.png" alt="Logo">
   <h1>Uniform Stock Manager</h1>
 </header>
 
-<!-- STOCK SECTION -->
-<section id="stockSection">
-  <h2>Stock Details</h2>
-  <div id="stockButtons" class="hidden">
-    <button onclick="addStockRow()">Add Row</button>
-    <button onclick="deleteStockRow()">Delete Row</button>
-    <button onclick="saveStock()">Save Stock</button>
-    <button onclick="exportStock()">Export Stock CSV</button>
-  </div>
-  <table id="stockTable">
-    <thead>
-      <tr>
-        <th>Item</th>
-        <th>Added Qty</th>
-        <th>Delivered</th>
-        <th>Available</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<section>
+<h2>Stock Summary</h2>
+<div style="text-align:right; margin-bottom:8px;">
+  <input type="file" id="csvFile" accept=".csv" style="display:none" onchange="importCSV(event)">
+  <button onclick="document.getElementById('csvFile').click()">📂 Import CSV</button>
+  <button onclick="exportCSV()">📤 Export CSV</button>
+  <button onclick="saveStock()">💾 Update Stock Sheet</button>
+  <span id="saveMsg">✅ Saved successfully!</span>
+</div>
+
+<table id="stockTable">
+<thead>
+<tr><th>#</th><th>Item</th><th>Added</th><th>Delivered</th><th>Available</th></tr>
+</thead>
+<tbody></tbody>
+</table>
 </section>
 
-<!-- LOGIN SECTION -->
-<section id="loginSection">
-  <h2>Login to Delivery Section</h2>
-  <div>
-    <div><input type="text" id="userId" placeholder="User ID"></div>
-    <div><input type="password" id="password" placeholder="Password"></div>
-    <button onclick="login()">Login</button>
-  </div>
-</section>
+<section>
+<h2>Transactions</h2>
+<form id="entryForm">
+<input type="text" id="iqama" placeholder="Iqama" required>
+<input type="text" id="emp" placeholder="Employee Name" required>
+<input type="date" id="date" required>
+<select id="itemSelect"></select>
+<input type="number" id="qty" placeholder="Quantity" required min="1">
+<input type="text" id="client" placeholder="Client">
+<input type="text" id="note" placeholder="Note">
+<button type="submit">➕ Add Transaction</button>
+</form>
 
-<!-- DELIVERY SECTION -->
-<section id="deliverySection" class="hidden">
-  <h2>Delivery / Return Entry</h2>
-  <form id="entryForm">
-    <div><input type="text" id="iqama" placeholder="Iqama" required></div>
-    <div><input type="text" id="emp" placeholder="Employee Name" required></div>
-    <div><input type="date" id="date" required></div>
-    <div>
-      <select id="itemSelect"></select>
-      <input type="number" id="qty" placeholder="Quantity" required min="1">
-    </div>
-    <div><input type="text" id="client" placeholder="Client"></div>
-    <div><input type="text" id="note" placeholder="Note"></div>
-    <button type="submit">Add Entry</button>
-  </form>
-
-  <h2>Transactions</h2>
-  <button onclick="exportReport()">Export Report CSV</button>
-  <table id="transTable">
-    <thead>
-      <tr>
-        <th>ID</th><th>Iqama</th><th>Name</th><th>Date</th><th>Item</th><th>Qty</th><th>Client</th><th>Note</th><th>Action</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<table id="transTable">
+<thead>
+<tr><th>#</th><th>Iqama</th><th>Name</th><th>Date</th><th>Item</th><th>Qty</th><th>Client</th><th>Note</th><th>Action</th></tr>
+</thead>
+<tbody></tbody>
+</table>
 </section>
 
 <script>
+// 🔗 You can change these to your backend/API if needed later
+const STOCK_API = "https://sheetdb.io/api/v1/2y1u7hp9ykzlq?sheet=Stock";
+const TRAN_API = "https://sheetdb.io/api/v1/2y1u7hp9ykzlq?sheet=Transactions";
+
 let stockData = [];
 let transactions = [];
-const USERS = [{ id:'admin', password:'1234' }];
-const API_BASE = "https://script.google.com/macros/s/AKfycbw9GwjRBvKvnHnFyCRfXUE1OTz5FCBZF-_GxAuWIGyr-Tb0HAqMiGHWlMHI_MfUOLAw/exec";
 
-// STOCK FUNCTIONS
-function updateDeliveredAndAvailable() {
-  stockData.forEach(item => {
-    const deliveredQty = transactions
-      .filter(t => t.item === item.Item)
-      .reduce((sum, t) => sum + t.qty, 0);
-    item.Delivered = deliveredQty;
-    item.Available = (item.Added || 0) - deliveredQty;
+// --- Update Available Stock ---
+function updateAvailable(){
+  stockData.forEach(item=>{
+    const delivered = transactions.filter(t=>t.Item===item.Item)
+      .reduce((sum,t)=>sum+t.Qty,0);
+    item.Delivered = delivered;
+    item.Available = (item.Added||0) - delivered;
   });
 }
 
+// --- Render Stock ---
 function renderStock(){
   const tbody = document.querySelector('#stockTable tbody');
-  tbody.innerHTML = '';
-  stockData.forEach(row => {
+  tbody.innerHTML='';
+  stockData.forEach((r,i)=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td contenteditable="true">${row.Item || ''}</td>
-      <td><input type="number" value="${row.Added || 0}"></td>
-      <td><input type="number" value="${row.Delivered || 0}" readonly></td>
-      <td><input type="number" value="${row.Available || 0}" readonly></td>
-    `;
+    tr.innerHTML=`
+      <td>${i+1}</td>
+      <td>${r.Item}</td>
+      <td><input type="number" value="${r.Added}" onchange="stockData[${i}].Added=+this.value"></td>
+      <td>${r.Delivered}</td>
+      <td>${r.Available}</td>`;
     tbody.appendChild(tr);
   });
   renderItemSelect();
 }
 
-function addStockRow(){
-  stockData.push({ Item:'', Added:0, Delivered:0, Available:0 });
-  renderStock();
-}
-
-function deleteStockRow(){
-  stockData.pop();
-  renderStock();
-}
-
-async function saveStock(){
-  const tbody = document.querySelector('#stockTable tbody');
-  stockData = [];
-  tbody.querySelectorAll('tr').forEach(tr => {
-    const cells = tr.querySelectorAll('td');
-    stockData.push({
-      Item: cells[0].innerText.trim(),
-      Added: parseInt(cells[1].querySelector('input').value) || 0,
-      Delivered: parseInt(cells[2].querySelector('input').value) || 0,
-      Available: parseInt(cells[3].querySelector('input').value) || 0
-    });
-  });
-  updateDeliveredAndAvailable();
-  try {
-    await fetch(API_BASE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(stockData)
-    });
-    alert('✅ Stock saved to Google Sheet!');
-  } catch(err) {
-    console.error(err);
-    alert('❌ Failed to save stock data.');
-  }
-  renderStock();
-}
-
-// DELIVERY FORM
+// --- Render Item Select ---
 function renderItemSelect(){
-  const select = document.getElementById('itemSelect');
-  select.innerHTML = '';
-  stockData.forEach(r => {
-    if (r.Item) select.innerHTML += `<option>${r.Item}</option>`;
-  });
+  const sel = document.getElementById('itemSelect');
+  sel.innerHTML='';
+  stockData.forEach(r=>{ if(r.Item) sel.innerHTML += `<option>${r.Item}</option>`; });
 }
 
-document.getElementById('entryForm').onsubmit = async function(e){
-  e.preventDefault();
-  const itemName = document.getElementById('itemSelect').value;
-  const qty = parseInt(document.getElementById('qty').value);
-  const stockRow = stockData.find(s => s.Item === itemName);
-  if (!stockRow || (stockRow.Available < qty)) {
-    alert('Not enough stock');
-    return;
-  }
-
-  const entry = {
-    id: Date.now(),
-    iqama: document.getElementById('iqama').value,
-    emp: document.getElementById('emp').value,
-    date: document.getElementById('date').value,
-    item: itemName,
-    qty: qty,
-    client: document.getElementById('client').value,
-    note: document.getElementById('note').value
-  };
-  transactions.push(entry);
-  updateDeliveredAndAvailable();
-
-  await saveStock();
-  await saveTransactions();
-  renderTransactions();
-  e.target.reset();
-};
-
-// TRANSACTION SAVE
-async function saveTransactions() {
-  if (transactions.length === 0) return;
-  try {
-    await fetch(API_BASE, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'transactions', data: transactions })
-    });
-    console.log('Transactions saved to sheet.');
-  } catch(err) {
-    console.error('Error saving transactions:', err);
-  }
-}
-
-// TRANSACTIONS LIST
+// --- Render Transactions ---
 function renderTransactions(){
   const tbody = document.querySelector('#transTable tbody');
-  tbody.innerHTML = '';
-  transactions.forEach((t, i) => {
+  tbody.innerHTML='';
+  transactions.forEach((t,i)=>{
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${t.id}</td>
-      <td>${t.iqama}</td>
-      <td>${t.emp}</td>
-      <td>${t.date}</td>
-      <td>${t.item}</td>
-      <td>${t.qty}</td>
-      <td>${t.client}</td>
-      <td>${t.note}</td>
-      <td><button onclick="deleteTrans(${i})">🗑</button></td>
-    `;
+    tr.innerHTML=`
+      <td>${i+1}</td><td>${t.Iqama}</td><td>${t.Name}</td>
+      <td>${t.Date}</td><td>${t.Item}</td><td>${t.Qty}</td>
+      <td>${t.Client}</td><td>${t.Note}</td>
+      <td><button onclick="deleteTransaction(${i})">🗑</button></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function deleteTrans(i){
-  const t = transactions[i];
-  const stockRow = stockData.find(s => s.Item === t.item);
-  if (stockRow) stockRow.Delivered -= t.qty;
-  transactions.splice(i, 1);
-  updateDeliveredAndAvailable();
-  renderTransactions();
-  saveStock();
-  saveTransactions();
-}
-
-// EXPORT CSV
-function exportStock(){
-  let csv = 'Item,Added,Delivered,Available\n';
-  stockData.forEach(r => csv += `${r.Item},${r.Added},${r.Delivered},${r.Available}\n`);
-  downloadCSV(csv, 'stock.csv');
-}
-
-function exportReport(){
-  let csv = 'ID,Iqama,Name,Date,Item,Qty,Client,Note\n';
-  transactions.forEach(t => csv += `${t.id},${t.iqama},${t.emp},${t.date},${t.item},${t.qty},${t.client},${t.note}\n`);
-  downloadCSV(csv, 'transactions.csv');
-}
-
-function downloadCSV(csv, name){
-  const blob = new Blob([csv], { type:'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-// LOGIN
-function login(){
-  const id = document.getElementById('userId').value.trim();
-  const password = document.getElementById('password').value.trim();
-  const user = USERS.find(u => u.id === id && u.password === password);
-  if (user) {
-    document.getElementById('deliverySection').classList.remove('hidden');
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('stockButtons').classList.remove('hidden');
-    renderItemSelect();
-    renderTransactions();
-  } else {
-    alert('Invalid credentials');
+// --- Add Transaction ---
+document.getElementById('entryForm').onsubmit = async function(e){
+  e.preventDefault();
+  const itemName = document.getElementById('itemSelect').value;
+  const qty = parseInt(document.getElementById('qty').value);
+  const stockRow = stockData.find(s=>s.Item===itemName);
+  if(!stockRow || stockRow.Available < qty){
+    alert("Not enough stock"); return;
   }
-}
 
-// INITIAL LOAD
-async function loadStock(){
-  try {
-    const res = await fetch(API_BASE);
-    stockData = await res.json();
-  } catch(err) {
-    console.error('Error loading stock:', err);
-  }
-  updateDeliveredAndAvailable();
+  const newTrans = {
+    Iqama: iqama.value, Name: emp.value, Date: date.value,
+    Item: itemName, Qty: qty,
+    Client: client.value, Note: note.value
+  };
+
+  transactions.push(newTrans);
+  updateAvailable();
   renderStock();
-}
-loadStock();
-</script>
+  renderTransactions();
+  e.target.reset();
 
+  try {
+    await fetch(TRAN_API,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({data:[newTrans]})
+    });
+  } catch(err){ console.error(err); }
+};
+
+// --- Delete Transaction ---
+async function deleteTransaction(index){
+  transactions.splice(index,1);
+  updateAvailable();
+  renderStock();
+  renderTransactions();
+  await fetch(TRAN_API,{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({data:transactions})
+  });
+}
+
+// --- Save Stock (PUT update) ---
+async function saveStock(){
+  try {
+    updateAvailable();
+    const payload = {data: stockData.map(r=>({
+      Item:r.Item, Added:+r.Added, Delivered:r.Delivered, Available:r.Available
+    }))};
+    const res = await fetch(STOCK_API,{
+      method:"PUT", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+    if(res.ok){
+      const msg=document.getElementById('saveMsg');
+      msg.style.display='inline';
+      setTimeout(()=>msg.style.display='none',2000);
+    }else alert("❌ Failed to save.");
+  }catch(err){console.error(err);}
+}
+
+// --- Import CSV ---
+function importCSV(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const lines = e.target.result.split('\n').map(l=>l.trim()).filter(Boolean);
+    const headers = lines.shift().split(',');
+    stockData = lines.map(line=>{
+      const cols = line.split(',');
+      return {
+        Item: cols[0],
+        Added: +cols[1]||0,
+        Delivered: +cols[2]||0,
+        Available: +cols[3]||0
+      };
+    });
+    renderStock();
+  };
+  reader.readAsText(file);
+}
+
+// --- Export CSV ---
+function exportCSV(){
+  let csv = "Item,Added,Delivered,Available\n";
+  stockData.forEach(r=>{
+    csv += `${r.Item},${r.Added},${r.Delivered},${r.Available}\n`;
+  });
+  const blob = new Blob([csv], {type: "text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Uniform_Stock.csv";
+  a.click();
+}
+
+// --- Load All Data ---
+async function loadData(){
+  try{
+    const sRes = await fetch(STOCK_API);
+    const sJson = await sRes.json();
+    stockData = sJson.map(r=>({
+      Item:r.Item, Added:+r.Added||0,
+      Delivered:+r.Delivered||0, Available:+r.Available||0
+    }));
+
+    const tRes = await fetch(TRAN_API);
+    const tJson = await tRes.json();
+    transactions = tJson.map(t=>({
+      Iqama:t.Iqama, Name:t.Name, Date:t.Date,
+      Item:t.Item, Qty:+t.Qty, Client:t.Client, Note:t.Note
+    }));
+
+    updateAvailable();
+    renderStock();
+    renderTransactions();
+  }catch(err){console.error(err);}
+}
+
+loadData();
+</script>
 </body>
 </html>
