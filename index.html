@@ -2,55 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
 <title>Uniform Stock Manager | مدير المخزون</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --blue1:#89f7fe; --blue2:#66a6ff; --text:#333;
-  }
-  body{
-    font-family:'Roboto',sans-serif;
-    margin:0; padding:0;
-    background:linear-gradient(120deg,var(--blue1),var(--blue2));
-    background-size:400% 400%;
-    animation:gradientBG 15s ease infinite;
-    color:var(--text);
-  }
-  @keyframes gradientBG{
-    0%{background-position:0% 50%}
-    50%{background-position:100% 50%}
-    100%{background-position:0% 50%}
-  }
-  header{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:10px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(6px);
-    flex-wrap:wrap; text-align:center;
-  }
-  header img{height:60px;animation:breathe 3s ease-in-out infinite alternate;}
-  @keyframes breathe{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
-  header h1{font-size:24px;margin:10px auto;flex:1;text-align:center;}
-  button{
-    padding:8px 14px;margin:4px;cursor:pointer;border:none;border-radius:6px;
-    background:var(--blue2);color:#fff;font-weight:600;transition:.3s;
-  }
-  button:hover{background:var(--blue1);color:#000;}
-  section{
-    background:rgba(255,255,255,0.95);margin:20px;padding:20px;border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.2);
-  }
-  h2{text-align:center;margin-top:0;}
-  table{width:100%;border-collapse:collapse;margin-top:15px;}
-  th,td{border:1px solid #aaa;padding:8px;text-align:center;}
-  input,select{width:100%;padding:6px;margin-top:5px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;}
-  input[readonly]{background:#eee;}
-  form div{margin-bottom:10px;}
-  .hidden{display:none;}
-  .rtl{direction:rtl;text-align:right;font-family:'Tajawal',sans-serif;}
-  @media(max-width:600px){
-    header h1{font-size:20px;}
-    section{margin:10px;padding:15px;}
-  }
+:root{
+  --blue1:#89f7fe; --blue2:#66a6ff; --text:#333;
+}
+body{
+  font-family:'Roboto',sans-serif;
+  margin:0; padding:0;
+  background:linear-gradient(120deg,var(--blue1),var(--blue2));
+  background-size:400% 400%;
+  animation:gradientBG 15s ease infinite;
+  color:var(--text);
+}
+@keyframes gradientBG{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(6px);
+  flex-wrap:wrap; text-align:center;
+}
+header img{height:60px; animation:breathe 3s ease-in-out infinite alternate;}
+@keyframes breathe{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
+header h1{font-size:24px;margin:10px auto;flex:1;text-align:center;}
+button{
+  padding:8px 14px;margin:4px;cursor:pointer;border:none;border-radius:6px;
+  background:var(--blue2);color:#fff;font-weight:600;transition:.3s;
+}
+button:hover{background:var(--blue1);color:#000;}
+section{
+  background:rgba(255,255,255,0.95);margin:20px;padding:20px;border-radius:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+h2{text-align:center;margin-top:0;}
+table{width:100%;border-collapse:collapse;margin-top:15px;}
+th,td{border:1px solid #aaa;padding:8px;text-align:center;}
+input,select{width:100%;padding:6px;margin-top:5px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;}
+input[readonly]{background:#eee;}
+form div{margin-bottom:10px;}
+.hidden{display:none;}
+.rtl{direction:rtl;text-align:right;font-family:'Tajawal',sans-serif;}
+@media(max-width:600px){
+  header h1{font-size:20px;}
+  section{margin:10px;padding:15px;}
+}
 </style>
 </head>
 <body>
@@ -63,13 +63,24 @@
 
 <section id="stockSection">
   <h2 id="stockTitle">Stock</h2>
-  <button onclick="exportStock()" id="exportStockBtn">Export Full Stock</button>
+
+  <!-- Add new stock item -->
+  <form id="addStockForm">
+    <div><input type="text" id="newItem" placeholder="Item Name" required></div>
+    <div><input type="text" id="newDesc" placeholder="Description"></div>
+    <div><input type="number" id="newQty" placeholder="Manual Qty Added" required min="0"></div>
+    <button type="submit" id="addStockBtn">Add Stock Item</button>
+  </form>
+
   <table id="stockTable">
     <thead>
       <tr>
-        <th id="itemHead">Item</th>
-        <th id="sizeHead">Size</th>
-        <th id="qtyHead">Available Qty</th>
+        <th>Item</th>
+        <th>Description</th>
+        <th>Manual Qty</th>
+        <th>Delivered Qty</th>
+        <th>Available Qty</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -92,7 +103,10 @@
     <div><input type="text" id="iqama" placeholder="Iqama" required></div>
     <div><input type="text" id="emp" placeholder="Employee Name" required></div>
     <div><input type="date" id="date" required></div>
-    <div><select id="item"></select><select id="size"></select></div>
+    <div>
+      <select id="item"></select>
+      <select id="size"></select>
+    </div>
     <div><input type="number" id="qty" placeholder="Quantity" required min="1"></div>
     <div><input type="text" id="client" placeholder="Client"></div>
     <div><input type="text" id="note" placeholder="Note"></div>
@@ -103,9 +117,9 @@
   <table id="transTable">
     <thead>
       <tr>
-        <th>ID</th><th id="iqamaHead">Iqama</th><th id="nameHead">Name</th><th id="dateHead">Date</th>
-        <th id="itemHead2">Item</th><th id="sizeHead2">Size</th><th id="qtyHead2">Qty</th>
-        <th id="clientHead">Client</th><th id="noteHead">Note</th><th id="actionHead">Action</th>
+        <th>ID</th><th>Iqama</th><th>Name</th><th>Date</th>
+        <th>Item</th><th>Size</th><th>Qty</th>
+        <th>Client</th><th>Note</th><th>Action</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -114,84 +128,131 @@
 
 <script>
 let lang='en';
-const BASE='https://your-vercel-deployment.vercel.app/api'; // replace with your Vercel URL
-const ADMIN={id:'admin',password:'1234'};
+const BASE='https://your-vercel-deployment.vercel.app/api'; // replace with your Vercel API
 let stockData=[],transactions=[];
 
+// Language text
 const t={
   en:{
     title:'Uniform Stock Manager', stock:'Stock', login:'Login', entry:'Delivery / Return Entry', trans:'Transactions',
-    exportStock:'Export Full Stock', exportReport:'Export Delivery Report',
-    user:'User ID', pass:'Password', loginBtn:'Login', addEntry:'Add Entry',
-    notEnough:'Not enough stock', invalid:'Invalid credentials', langBtn:'العربية'
+    addStock:'Add Stock Item', addEntry:'Add Entry', notEnough:'Not enough stock', invalid:'Invalid credentials',
+    langBtn:'العربية', exportReport:'Export Delivery Report', manualQty:'Manual Qty Added'
   },
   ar:{
     title:'إدارة المخزون', stock:'المخزون', login:'تسجيل الدخول', entry:'تسليم / إرجاع', trans:'المعاملات',
-    exportStock:'تصدير المخزون الكامل', exportReport:'تصدير تقرير التسليم',
-    user:'معرف المستخدم', pass:'كلمة المرور', loginBtn:'دخول', addEntry:'إضافة إدخال',
-    notEnough:'الكمية غير كافية', invalid:'بيانات الدخول غير صحيحة', langBtn:'English'
+    addStock:'إضافة مخزون', addEntry:'إضافة إدخال', notEnough:'الكمية غير كافية', invalid:'بيانات الدخول غير صحيحة',
+    langBtn:'English', exportReport:'تصدير تقرير التسليم', manualQty:'الكمية المضافة يدوياً'
   }
 };
-
-function setText(id,key){document.getElementById(id).innerText=t[lang][key];}
-function setPlaceholder(id,key){document.getElementById(id).placeholder=t[lang][key];}
 
 function toggleLang(){
   lang=lang==='en'?'ar':'en';
   document.body.className=lang==='ar'?'rtl':'';
-  setText('title','title'); setText('stockTitle','stock'); setText('loginTitle','login');
-  setText('entryTitle','entry'); setText('transTitle','trans'); setText('exportStockBtn','exportStock');
-  setText('exportReportBtn','exportReport'); setText('loginBtn','loginBtn'); setText('addEntryBtn','addEntry');
-  document.getElementById('langBtn').innerText=t[lang]['langBtn'];
-  setPlaceholder('userId','user'); setPlaceholder('password','pass');
+  document.getElementById('title').innerText=t[lang].title;
+  document.getElementById('stockTitle').innerText=t[lang].stock;
+  document.getElementById('loginTitle').innerText=t[lang].login;
+  document.getElementById('entryTitle').innerText=t[lang].entry;
+  document.getElementById('transTitle').innerText=t[lang].trans;
+  document.getElementById('addStockBtn').innerText=t[lang].addStock;
+  document.getElementById('addEntryBtn').innerText=t[lang].addEntry;
+  document.getElementById('exportReportBtn').innerText=t[lang].exportReport;
+  document.getElementById('langBtn').innerText=t[lang].langBtn;
 }
 
-function login(){
+// ---------------- LOGIN ----------------
+async function login(){
   const id=document.getElementById('userId').value.trim();
   const password=document.getElementById('password').value.trim();
-  if(id===ADMIN.id && password===ADMIN.password){
+  // simple local check for demo
+  if(id==='admin' && password==='1234'){
     document.getElementById('loginSection').style.display='none';
     document.getElementById('mainApp').classList.remove('hidden');
-    loadStock(); loadTransactions(); setupEntryForm();
+    await loadStock(); await loadTransactions(); setupEntryForm();
   } else alert(t[lang].invalid);
 }
 
+// ---------------- STOCK ----------------
 async function loadStock(){
-  const res=await fetch(BASE+'/stock');
-  stockData=await res.json(); renderStock();
+  const res=await fetch(BASE+'/stock'); 
+  stockData=await res.json(); 
+  calculateStock();
+  renderStock();
+}
+
+function calculateStock(){
+  stockData.forEach(item=>item.delivered=0);
+  transactions.forEach(t=>{
+    const s = stockData.find(x=>x.Item===t.item);
+    if(s) s.delivered += t.qty;
+  });
+  stockData.forEach(item=>{
+    item.available = (item.manualQty||0) - (item.delivered||0);
+  });
 }
 
 function renderStock(){
   const tbody=document.querySelector('#stockTable tbody');
   tbody.innerHTML='';
-  const itemSel=document.getElementById('item'); const sizeSel=document.getElementById('size');
-  itemSel.innerHTML=''; sizeSel.innerHTML='';
-  stockData.forEach(r=>{
+  stockData.forEach((item,i)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.Item}</td><td>${r.Size}</td><td><input type="number" value="${r.Quantity}" readonly></td>`;
+    tr.innerHTML=`
+      <td>${item.Item}</td>
+      <td>${item.desc||''}</td>
+      <td><input type="number" value="${item.manualQty||0}" min="0" onchange="updateManualQty(${i},this.value)"></td>
+      <td>${item.delivered||0}</td>
+      <td>${item.available||0}</td>
+      <td><button onclick="saveStock(${i})">Save</button></td>
+    `;
     tbody.appendChild(tr);
-    if(![...itemSel.options].some(o=>o.value===r.Item)) itemSel.innerHTML+=`<option>${r.Item}</option>`;
   });
 }
 
+function updateManualQty(index,value){
+  stockData[index].manualQty=parseInt(value)||0;
+  stockData[index].available=stockData[index].manualQty-stockData[index].delivered;
+  renderStock();
+}
+
+async function saveStock(index){
+  await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(stockData)});
+  alert('Stock saved!');
+}
+
+// Add new stock
+document.getElementById('addStockForm').onsubmit=async(e)=>{
+  e.preventDefault();
+  const item=document.getElementById('newItem').value.trim();
+  const desc=document.getElementById('newDesc').value.trim();
+  const qty=parseInt(document.getElementById('newQty').value.trim());
+  if(!item || isNaN(qty)) return;
+  stockData.push({Item:item, desc, manualQty:qty, delivered:0, available:qty});
+  await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(stockData)});
+  document.getElementById('addStockForm').reset();
+  renderStock();
+};
+
+// ---------------- TRANSACTIONS ----------------
 async function loadTransactions(){
-  const res=await fetch(BASE+'/transactions');
-  transactions=await res.json(); renderTransactions();
+  const res=await fetch(BASE+'/transactions'); transactions=await res.json(); calculateStock(); renderStock(); renderTransactions();
 }
 
 function renderTransactions(){
-  const tbody=document.querySelector('#transTable tbody'); tbody.innerHTML='';
+  const tbody=document.querySelector('#transTable tbody');
+  tbody.innerHTML='';
   transactions.forEach(tn=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${tn.id}</td><td>${tn.iqama}</td><td>${tn.emp}</td><td>${tn.date}</td><td>${tn.item}</td><td>${tn.size}</td><td>${tn.qty}</td><td>${tn.client}</td><td>${tn.note}</td>
-    <td><button onclick="deleteTrans('${tn.id}')">🗑</button></td>`;
+    tr.innerHTML=`<td>${tn.id}</td><td>${tn.iqama}</td><td>${tn.emp}</td><td>${tn.date}</td>
+      <td>${tn.item}</td><td>${tn.size}</td><td>${tn.qty}</td>
+      <td>${tn.client}</td><td>${tn.note}</td>
+      <td><button onclick="deleteTrans('${tn.id}')">🗑</button></td>`;
     tbody.appendChild(tr);
   });
 }
 
 function setupEntryForm(){
   const form=document.getElementById('entryForm');
-  const sizeSel=document.getElementById('size'); const itemSel=document.getElementById('item');
+  const itemSel=document.getElementById('item');
+  const sizeSel=document.getElementById('size');
   itemSel.addEventListener('change',updateSizes); updateSizes();
   form.onsubmit=async(e)=>{
     e.preventDefault();
@@ -201,44 +262,52 @@ function setupEntryForm(){
       item:itemSel.value, size:sizeSel.value,
       qty:parseInt(qty.value), client:client.value, note:note.value
     };
-    const row=stockData.find(r=>r.Item===entry.item&&r.Size===entry.size);
-    if(!row||row.Quantity<entry.qty){alert(t[lang].notEnough);return;}
-    row.Quantity-=entry.qty;
-    await fetch(BASE+'/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
-    await fetch(BASE+'/transactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)});
-    loadStock(); loadTransactions(); form.reset();
+    const row=stockData.find(r=>r.Item===entry.item && r.Size===entry.size);
+    if(!row || row.available<entry.qty){alert(t[lang].notEnough); return;}
+    row.available-=entry.qty;
+    row.delivered += entry.qty;
+    await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(stockData)});
+    await fetch(BASE+'/transactions',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(entry)});
+    await loadStock(); await loadTransactions();
+    form.reset();
   };
 }
 
 function updateSizes(){
-  const item=document.getElementById('item').value;
+  const itemSel=document.getElementById('item');
   const sizeSel=document.getElementById('size');
+  const item=itemSel.value;
   const sizes=stockData.filter(r=>r.Item===item).map(r=>r.Size);
   sizeSel.innerHTML=''; sizes.forEach(s=>sizeSel.innerHTML+=`<option>${s}</option>`);
 }
 
 async function deleteTrans(id){
   await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
-  loadStock(); loadTransactions();
+  await loadStock(); await loadTransactions();
 }
 
+// Export CSV
 function exportStock(){
-  let csv='Item,Size,Quantity\n';
-  stockData.forEach(r=>csv+=`${r.Item},${r.Size},${r.Quantity}\n`);
+  let csv='Item,Description,ManualQty,Delivered,Available\n';
+  stockData.forEach(r=>csv+=`${r.Item},${r.desc||''},${r.manualQty||0},${r.delivered||0},${r.available||0}\n`);
   downloadCSV(csv,'full_stock.csv');
 }
+
 function exportReport(){
   let csv='Iqama,Name,Date,Item,Size,Qty,Client,Note\n';
   transactions.forEach(tn=>csv+=`${tn.iqama},${tn.emp},${tn.date},${tn.item},${tn.size},${tn.qty},${tn.client},${tn.note}\n`);
   downloadCSV(csv,'delivery_report.csv');
 }
+
 function downloadCSV(csv,name){
   const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);const a=document.createElement('a');
-  a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
 }
 
+// Initial load
 loadStock();
+loadTransactions();
 </script>
 
 </body>
