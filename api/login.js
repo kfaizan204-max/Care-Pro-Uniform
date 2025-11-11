@@ -4,10 +4,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Parse the incoming JSON body
-    const { id, password } = req.body || {};
+    // ✅ Vercel requires parsing body differently
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const { id, password } = body;
 
-    // Simple in-memory users list (can later be moved to data.json)
     const USERS = [
       { id: "admin", password: "1234" },
       { id: "faizan", password: "aios" }
@@ -27,8 +27,8 @@ export default async function handler(req, res) {
         message: "Invalid ID or password"
       });
     }
-  } catch (err) {
-    console.error("Login error:", err);
+  } catch (error) {
+    console.error("Login error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 }
