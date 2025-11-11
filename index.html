@@ -1,118 +1,70 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Uniform Stock Manager</title>
-<style>
-body{font-family:sans-serif; margin:20px; background:linear-gradient(135deg,#e0f7fa,#e1bee7); min-height:100vh;}
-table{border-collapse:collapse;width:100%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.1);}
-th,td{border:1px solid #aaa; padding:6px; text-align:center;}
-input{width:80px;padding:4px;}
-button{padding:6px 12px; margin:6px; border:none; border-radius:6px; cursor:pointer; font-weight:600;}
-button:hover{opacity:0.9;}
-.add-btn{background:#4caf50;color:#fff;}
-.del-btn{background:#f44336;color:#fff;}
-.save-btn{background:#2196f3;color:#fff;}
-h1{text-align:center;color:#333;}
-</style>
-</head>
-<body>
-<h1>Uniform Stock Manager</h1>
+import fetch from "node-fetch";
 
-<h2>📦 Stock Summary</h2>
-<div style="margin-bottom:10px;">
-  <button class="add-btn" onclick="addRow()">➕ Add Row</button>
-  <button class="del-btn" onclick="deleteRow()">🗑 Delete Last Row</button>
-  <button class="save-btn" onclick="saveStock()">💾 Save Online</button>
-</div>
+const owner = "kfaizan204-max";
+const repo = "Care-Pro-Uniform";
+const filePath = "data.json";
 
-<table id="stockTable">
-  <thead>
-    <tr><th>#</th><th>Item</th><th>Added</th><th>Delivered</th><th>Available</th></tr>
-  </thead>
-  <tbody></tbody>
-</table>
+export default async function handler(req, res) {
+  const token = process.env.GITHUB_TOKEN;
 
-<script>
-const API_URL = "/api/saveData";
-let stockData = [];
-
-// --- Load Data ---
-async function loadData(){
-  try{
-    const res = await fetch(API_URL);
-    const json = await res.json();
-    stockData = json.stockData || [];
-    renderStock();
-  }catch(e){
-    console.error(e);
-    alert("❌ Failed to load data");
+  if (!token) {
+    return res.status(500).json({ error: "Missing GitHub token" });
   }
-}
 
-// --- Render Stock Table ---
-function renderStock(){
-  const tbody = document.querySelector("#stockTable tbody");
-  tbody.innerHTML = "";
-  stockData.forEach((r,i)=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${i+1}</td>
-      <td><input value="${r.Item||''}" onchange="stockData[${i}].Item=this.value"></td>
-      <td><input type="number" value="${r.Added||0}" onchange="stockData[${i}].Added=+this.value"></td>
-      <td><input type="number" value="${r.Delivered||0}" onchange="stockData[${i}].Delivered=+this.value"></td>
-      <td>${(r.Added||0)-(r.Delivered||0)}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+  // GitHub API endpoint for file
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
 
-// --- Add New Row ---
-function addRow(){
-  stockData.push({Item:"",Added:0,Delivered:0});
-  renderStock();
-}
-
-// --- Delete Last Row ---
-function deleteRow(){
-  if(stockData.length>0){
-    if(confirm("Delete last row?")){
-      stockData.pop();
-      renderStock();
+  try {
+    if (req.method === "GET") {
+      const resp = await fetch(apiUrl, {
+        headers: { Authorization: `token ${token}` },
+      });
+      const data = await resp.json();
+      const content = Buffer.from(data.content, "base64").toString("utf-8");
+      res.status(200).json(JSON.parse(content));
+      return;
     }
-  } else {
-    alert("No rows to delete!");
+
+    if (req.method === "POST") {
+      const body = req.body;
+      if (!body) return res.status(400).json({ error: "Missing body" });
+
+      // get current file SHA
+      const getResp = await fetch(apiUrl, {
+        headers: { Authorization: `token ${token}` },
+      });
+      const current = await getResp.json();
+      const sha = current.sha;
+
+      // encode updated content
+      const updatedContent = Buffer.from(JSON.stringify(body, null, 2)).toString("base64");
+
+      // commit to GitHub
+      const putResp = await fetch(apiUrl, {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: "Update data.json via Vercel API",
+          content: updatedContent,
+          sha,
+        }),
+      });
+
+      if (!putResp.ok) {
+        const err = await putResp.text();
+        throw new Error(err);
+      }
+
+      res.status(200).json({ success: true });
+      return;
+    }
+
+    res.status(405).json({ error: "Method not allowed" });
+  } catch (err) {
+    console.error("❌ API error:", err);
+    res.status(500).json({ error: "Internal Server Error", message: err.message });
   }
 }
-
-// --- Save Stock Data Online ---
-async function saveStock(){
-  try{
-    const payload = {
-      stockData: stockData.map(r=>({
-        Item:r.Item,
-        Added:+r.Added||0,
-        Delivered:+r.Delivered||0,
-        Available:(+r.Added||0)-(+r.Delivered||0)
-      })),
-      transactions:[]
-    };
-    const res = await fetch(API_URL,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(payload)
-    });
-    if(res.ok) alert("✅ Data saved online successfully!");
-    else alert("❌ Save failed!");
-  }catch(e){
-    console.error(e);
-    alert("❌ Network error while saving!");
-  }
-}
-
-// Load data on start
-loadData();
-</script>
-</body>
-</html>
