@@ -1,0 +1,47 @@
+[
+  {"Item":"White Oxford Shirt","Size":"XS","Quantity":20},
+  {"Item":"White Oxford Shirt","Size":"S","Quantity":40},
+  {"Item":"White Oxford Shirt","Size":"M","Quantity":40},
+  {"Item":"White Oxford Shirt","Size":"L","Quantity":40},
+  {"Item":"White Oxford Shirt","Size":"XL","Quantity":20},
+
+  {"Item":"Black Shirt","Size":"XS","Quantity":20},
+  {"Item":"Black Shirt","Size":"S","Quantity":30},
+  {"Item":"Black Shirt","Size":"M","Quantity":30},
+  {"Item":"Black Shirt","Size":"L","Quantity":30},
+  {"Item":"Black Shirt","Size":"XL","Quantity":20},
+
+  {"Item":"Black Pants","Size":"XS","Quantity":15},
+  {"Item":"Black Pants","Size":"S","Quantity":25},
+  {"Item":"Black Pants","Size":"M","Quantity":25},
+  {"Item":"Black Pants","Size":"L","Quantity":25},
+  {"Item":"Black Pants","Size":"XL","Quantity":15},
+
+  {"Item":"Cleaner T-Shirt","Size":"XS","Quantity":20},
+  {"Item":"Cleaner T-Shirt","Size":"S","Quantity":30},
+  {"Item":"Cleaner T-Shirt","Size":"M","Quantity":30},
+  {"Item":"Cleaner T-Shirt","Size":"L","Quantity":30},
+  {"Item":"Cleaner T-Shirt","Size":"XL","Quantity":20},
+
+  {"Item":"Cleaner Pants","Size":"XS","Quantity":15},
+  {"Item":"Cleaner Pants","Size":"S","Quantity":25},
+  {"Item":"Cleaner Pants","Size":"M","Quantity":25},
+  {"Item":"Cleaner Pants","Size":"L","Quantity":25},
+  {"Item":"Cleaner Pants","Size":"XL","Quantity":15},
+
+  {"Item":"Belt","Size":"One Size","Quantity":50},
+  {"Item":"Tie","Size":"One Size","Quantity":50},
+
+  {"Item":"Shoes","Size":"39","Quantity":10},
+  {"Item":"Shoes","Size":"40","Quantity":10},
+  {"Item":"Shoes","Size":"41","Quantity":10},
+  {"Item":"Shoes","Size":"42","Quantity":10},
+  {"Item":"Shoes","Size":"43","Quantity":10},
+  {"Item":"Shoes","Size":"44","Quantity":10},
+
+  {"Item":"Waistcoat","Size":"XS","Quantity":15},
+  {"Item":"Waistcoat","Size":"S","Quantity":20},
+  {"Item":"Waistcoat","Size":"M","Quantity":20},
+  {"Item":"Waistcoat","Size":"L","Quantity":20},
+  {"Item":"Waistcoat","Size":"XL","Quantity":15}
+]
