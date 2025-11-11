@@ -37,9 +37,7 @@ input[readonly]{background:#eee;}
   <h2>Stock Details</h2>
   <div id="stockButtons" class="hidden">
     <button onclick="addStockRow()">Add Row</button>
-    <button onclick="addStockColumn()">Add Column</button>
     <button onclick="deleteStockRow()">Delete Row</button>
-    <button onclick="deleteStockColumn()">Delete Column</button>
     <button onclick="saveStock()">Save Stock</button>
     <button onclick="exportStock()">Export Stock CSV</button>
   </div>
@@ -98,7 +96,9 @@ input[readonly]{background:#eee;}
 let stockData = [];
 let transactions = [];
 const USERS = [{id:'admin',password:'1234'}];
-const API_BASE = '/api/stock';
+
+// 🔗 GOOGLE SHEETS API LINK
+const API_BASE = "https://script.google.com/macros/s/AKfycbxBzYTYwuV2UC30yZYDGd70EDn9BWkmgrDDQBQvkVdXiPrAeDThpzyF9XdVXpFtcIqn8A/exec";
 
 // STOCK FUNCTIONS
 function updateDeliveredAndAvailable() {
@@ -114,9 +114,9 @@ function updateDeliveredAndAvailable() {
 function renderStock(){
   const tbody = document.querySelector('#stockTable tbody');
   tbody.innerHTML='';
-  stockData.forEach((row,i)=>{
+  stockData.forEach((row)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td contenteditable="true">${row.Item}</td>
+    tr.innerHTML=`<td contenteditable="true">${row.Item || ''}</td>
                     <td><input type="number" value="${row.Added||0}"></td>
                     <td><input type="number" value="${row.Delivered||0}" readonly></td>
                     <td><input type="number" value="${row.Available||0}" readonly></td>`;
@@ -127,16 +127,6 @@ function renderStock(){
 
 function addStockRow(){ stockData.push({Item:'',Added:0,Delivered:0,Available:0}); renderStock(); }
 function deleteStockRow(){ stockData.pop(); renderStock(); }
-function addStockColumn(){
-  const tbody=document.querySelector('#stockTable tbody');
-  tbody.querySelectorAll('tr').forEach(tr=>{ const td=document.createElement('td'); td.contentEditable=true; td.innerText=''; tr.appendChild(td); });
-  const th=document.querySelector('#stockTable thead tr'); const newTH=document.createElement('th'); newTH.innerText='New Column'; th.appendChild(newTH);
-}
-function deleteStockColumn(){
-  const tbody=document.querySelector('#stockTable tbody');
-  tbody.querySelectorAll('tr').forEach(tr=>{ tr.removeChild(tr.lastElementChild); });
-  const th=document.querySelector('#stockTable thead tr'); th.removeChild(th.lastElementChild);
-}
 
 async function saveStock(){
   const tbody=document.querySelector('#stockTable tbody');
@@ -144,15 +134,25 @@ async function saveStock(){
   tbody.querySelectorAll('tr').forEach(tr=>{
     const cells=tr.querySelectorAll('td');
     stockData.push({
-      Item:cells[0].innerText,
+      Item:cells[0].innerText.trim(),
       Added:parseInt(cells[1].querySelector('input').value)||0,
-      Delivered:parseInt(cells[2].querySelector('input').value)||0
+      Delivered:parseInt(cells[2].querySelector('input').value)||0,
+      Available:parseInt(cells[3].querySelector('input').value)||0
     });
   });
   updateDeliveredAndAvailable();
-  await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
+  try {
+    await fetch(API_BASE, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(stockData)
+    });
+    alert('✅ Stock saved to Google Sheet!');
+  } catch (err) {
+    console.error(err);
+    alert('❌ Failed to save stock data.');
+  }
   renderStock();
-  alert('Stock saved!');
 }
 
 // DELIVERY FORM
@@ -228,9 +228,12 @@ function login(){
 
 // INITIAL STOCK LOAD
 async function loadStock(){
-  try{
-    const res=await fetch(API_BASE); stockData=await res.json();
-  }catch(e){ console.error(e);}
+  try {
+    const res=await fetch(API_BASE);
+    stockData=await res.json();
+  } catch(e) {
+    console.error('Error loading stock:', e);
+  }
   updateDeliveredAndAvailable();
   renderStock();
 }
