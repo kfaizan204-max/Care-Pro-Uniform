@@ -5,19 +5,44 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uniform Stock Manager</title>
 <style>
-  body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#f5f5f5; }
-  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:30px; }
-  header img { height:60px; margin-right:20px; }
-  header h1 { margin:0; font-size:26px; flex:1; }
-  button { padding:6px 12px; cursor:pointer; margin:5px; }
-  .rtl { direction:rtl; text-align:right; }
-  section { background:#fff; padding:20px; margin-bottom:30px; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+  @import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+  body {
+    font-family: 'Roboto', sans-serif;
+    margin:0; padding:0;
+    background: linear-gradient(120deg,#89f7fe,#66a6ff);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    color:#333;
+  }
+  @keyframes gradientBG{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+  header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(5px);
+  }
+  header img {
+    height:70px; width:auto;
+    animation: breathe 3s ease-in-out infinite alternate;
+  }
+  @keyframes breathe{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.08);}
+    100%{transform:scale(1);}
+  }
+  header h1 { font-size:28px; margin:0; flex:1; text-align:center;}
+  button { padding:6px 12px; margin:3px; cursor:pointer; border:none; border-radius:5px; background:#66a6ff; color:#fff; font-weight:bold; }
+  button:hover { background:#89f7fe; color:#000; }
+  section { background:rgba(255,255,255,0.95); margin:20px; padding:20px; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.2);}
   table { width:100%; border-collapse:collapse; margin-top:15px; }
-  th, td { border:1px solid #aaa; padding:8px; text-align:center; }
+  th,td { border:1px solid #aaa; padding:8px; text-align:center; }
   input, select { width:100%; padding:6px; margin-top:5px; box-sizing:border-box; }
-  form div { margin-bottom:10px; }
   input[readonly] { background:#eee; }
+  form div { margin-bottom:10px; }
   .hidden { display:none; }
+  .rtl { direction:rtl; text-align:right; }
 </style>
 </head>
 <body>
@@ -30,12 +55,13 @@
 
 <section id="stockSection">
   <h2 id="stockTitle">Stock</h2>
+  <button onclick="exportStock()">Export Full Stock</button>
   <table id="stockTable">
     <thead>
       <tr>
         <th>Item</th>
         <th>Size</th>
-        <th>Quantity</th>
+        <th>Available Qty</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -53,15 +79,16 @@
 
 <section id="mainApp" class="hidden">
   <h2 id="entryTitle">Delivery / Return Entry</h2>
+  <button onclick="exportReport()">Export Delivery Report</button>
   <form id="entryForm">
-    <div><input type="text" id="iqama" placeholder="Iqama"></div>
-    <div><input type="text" id="emp" placeholder="Employee Name"></div>
-    <div><input type="date" id="date"></div>
+    <div><input type="text" id="iqama" placeholder="Iqama" required></div>
+    <div><input type="text" id="emp" placeholder="Employee Name" required></div>
+    <div><input type="date" id="date" required></div>
     <div>
       <select id="item"></select>
       <select id="size"></select>
     </div>
-    <div><input type="number" id="qty" placeholder="Quantity"></div>
+    <div><input type="number" id="qty" placeholder="Quantity" required min="1"></div>
     <div><input type="text" id="client" placeholder="Client"></div>
     <div><input type="text" id="note" placeholder="Note"></div>
     <button type="submit">Add Entry</button>
@@ -88,23 +115,11 @@
 </section>
 
 <script>
-const BASE = '/api'; // Replace with your actual backend API URL if deployed
 let lang='en';
-
-// Example user credentials (can add more)
+const BASE = 'https://your-vercel-deployment.vercel.app/api'; // Replace with your Vercel URL
 const USERS = [{id:'admin', password:'1234'}];
 
-// Sample stock data (you can load from backend)
-let stockData = [
-  {Item:'WHITE OXFORD SHIRT LONG SLEEVES', Size:'SMALL', Quantity:40},
-  {Item:'WHITE OXFORD SHIRT LONG SLEEVES', Size:'MEDIUM', Quantity:40},
-  {Item:'WHITE OXFORD SHIRT LONG SLEEVES', Size:'LARGE', Quantity:20},
-  {Item:'BLACK OXFORD SHIRT LONG SLEEVES', Size:'SMALL', Quantity:20},
-  {Item:'BLACK OXFORD SHIRT LONG SLEEVES', Size:'MEDIUM', Quantity:20},
-  {Item:'BLACK OXFORD SHIRT LONG SLEEVES', Size:'LARGE', Quantity:10}
-];
-
-// Transactions array
+let stockData = [];
 let transactions = [];
 
 // Toggle language
@@ -118,8 +133,30 @@ function toggleLang(){
   document.getElementById('transTitle').innerText = lang==='en'?'Transactions':'المعاملات';
 }
 
+// Login
+async function login(){
+  const id = document.getElementById('userId').value;
+  const pass = document.getElementById('password').value;
+  const res = await fetch(BASE+'/login',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id,password})});
+  const data = await res.json();
+  if(data.success){
+    document.getElementById('loginSection').style.display='none';
+    document.getElementById('mainApp').classList.remove('hidden');
+    await loadStock();
+    await loadTransactions();
+    setupEntryForm();
+  } else alert(lang==='en'?'Invalid credentials':'بيانات الدخول غير صحيحة');
+}
+
+// Load stock
+async function loadStock(){
+  const res = await fetch(BASE+'/stock');
+  stockData = await res.json();
+  renderStock();
+}
+
 // Render stock table
-function renderStock(readOnly=true){
+function renderStock(){
   const tbody = document.querySelector('#stockTable tbody');
   tbody.innerHTML='';
   const itemSelect = document.getElementById('item');
@@ -127,10 +164,17 @@ function renderStock(readOnly=true){
   itemSelect.innerHTML=''; sizeSelect.innerHTML='';
   stockData.forEach(r=>{
     const tr = document.createElement('tr');
-    tr.innerHTML=`<td>${r.Item}</td><td>${r.Size}</td><td><input type="number" value="${r.Quantity}" ${readOnly?'readonly':''}></td>`;
+    tr.innerHTML=`<td>${r.Item}</td><td>${r.Size}</td><td><input type="number" value="${r.Quantity}" readonly></td>`;
     tbody.appendChild(tr);
     if(![...itemSelect.options].some(o=>o.value===r.Item)) itemSelect.innerHTML += `<option>${r.Item}</option>`;
   });
+}
+
+// Load transactions
+async function loadTransactions(){
+  const res = await fetch(BASE+'/transactions');
+  transactions = await res.json();
+  renderTransactions();
 }
 
 // Render transactions
@@ -145,60 +189,77 @@ function renderTransactions(){
   });
 }
 
-// Login function
-function login(){
-  const id = document.getElementById('userId').value;
-  const pass = document.getElementById('password').value;
-  const user = USERS.find(u=>u.id===id && u.password===pass);
-  if(user){
-    document.getElementById('loginSection').style.display='none';
-    document.getElementById('mainApp').classList.remove('hidden');
-    renderStock(false);
-    renderTransactions();
-    setupEntryForm();
-  } else alert('Invalid credentials');
-}
-
-// Setup entry form
+// Setup Entry Form
 function setupEntryForm(){
-  document.getElementById('entryForm').onsubmit = function(e){
+  const form = document.getElementById('entryForm');
+  const sizeSelect = document.getElementById('size');
+  const itemSelect = document.getElementById('item');
+  itemSelect.addEventListener('change', updateSizes);
+  updateSizes();
+  form.onsubmit = async (e)=>{
     e.preventDefault();
     const entry = {
       id: Date.now().toString(),
       iqama: document.getElementById('iqama').value,
       emp: document.getElementById('emp').value,
       date: document.getElementById('date').value,
-      item: document.getElementById('item').value,
-      size: document.getElementById('size').value,
+      item: itemSelect.value,
+      size: sizeSelect.value,
       qty: parseInt(document.getElementById('qty').value),
       client: document.getElementById('client').value,
       note: document.getElementById('note').value
     };
-    // update stock
-    const row = stockData.find(r=>r.Item===entry.item && r.Size===entry.size);
-    if(row) row.Quantity -= entry.qty;
-    transactions.unshift(entry);
-    renderStock(false);
-    renderTransactions();
+    const stockRow = stockData.find(r=>r.Item===entry.item && r.Size===entry.size);
+    if(!stockRow || stockRow.Quantity<entry.qty){ alert(lang==='en'?'Not enough stock':'الكمية غير كافية'); return; }
+    stockRow.Quantity -= entry.qty;
+    await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(stockData)});
+    await fetch(BASE+'/transactions',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(entry)});
+    await loadStock(); await loadTransactions();
     e.target.reset();
   }
 }
 
-// Delete transaction
-function deleteTrans(id){
-  const entry = transactions.find(t=>t.id===id);
-  if(entry){
-    // restore stock
-    const row = stockData.find(r=>r.Item===entry.item && r.Size===entry.size);
-    if(row) row.Quantity += entry.qty;
-  }
-  transactions = transactions.filter(t=>t.id!==id);
-  renderStock(false);
-  renderTransactions();
+// Update size options based on selected item
+function updateSizes(){
+  const item = document.getElementById('item').value;
+  const sizes = stockData.filter(r=>r.Item===item).map(r=>r.Size);
+  const sizeSelect = document.getElementById('size');
+  sizeSelect.innerHTML = '';
+  sizes.forEach(s=>{ sizeSelect.innerHTML += `<option>${s}</option>`; });
 }
 
-// Initial render
-renderStock(true);
+// Delete transaction
+async function deleteTrans(id){
+  await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
+  await loadStock(); await loadTransactions();
+}
+
+// Export full stock
+function exportStock(){
+  let csv='Item,Size,Quantity\n';
+  stockData.forEach(r=>{ csv+=`${r.Item},${r.Size},${r.Quantity}\n`; });
+  downloadCSV(csv,'full_stock.csv');
+}
+
+// Export delivery report
+function exportReport(){
+  let csv='Iqama,Name,Date,Item,Size,Qty,Client,Note\n';
+  transactions.forEach(t=>{ csv+=`${t.iqama},${t.emp},${t.date},${t.item},${t.size},${t.qty},${t.client},${t.note}\n`; });
+  downloadCSV(csv,'delivery_report.csv');
+}
+
+// CSV download helper
+function downloadCSV(csv, filename){
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
+
+// Initial load (stock only, read-only)
+loadStock();
 </script>
 </body>
 </html>
