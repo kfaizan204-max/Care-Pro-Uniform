@@ -1,13 +1,15 @@
-const fs = require('fs');
-const DATA_FILE = './api/data.json';
+import fs from 'fs';
+import path from 'path';
 
-export default function handler(req, res){
-  let data = JSON.parse(fs.readFileSync(DATA_FILE));
-  if(req.method === 'GET'){
-    res.status(200).json(data.stock);
-  } else if(req.method === 'POST'){
-    data.stock = JSON.parse(req.body);
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-    res.status(200).json({ success:true });
-  } else res.status(405).json({ error:'Method Not Allowed' });
+const stockFile = path.join(process.cwd(),'data','stock.json');
+
+export default function handler(req,res){
+  if(req.method==='GET'){
+    const data = JSON.parse(fs.readFileSync(stockFile));
+    res.status(200).json(data);
+  } else if(req.method==='POST'){
+    const newData = req.body;
+    fs.writeFileSync(stockFile, JSON.stringify(newData,null,2));
+    res.status(200).json({success:true});
+  } else res.status(405).json({message:'Method not allowed'});
 }
