@@ -6,51 +6,28 @@
 <title>Uniform Stock Manager | مدير المخزون</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --blue1:#89f7fe; --blue2:#66a6ff; --text:#333;
-}
-body{
-  font-family:'Roboto',sans-serif;
-  margin:0; padding:0;
-  background:linear-gradient(120deg,var(--blue1),var(--blue2));
-  background-size:400% 400%;
-  animation:gradientBG 15s ease infinite;
-  color:var(--text);
-}
-@keyframes gradientBG{
-  0%{background-position:0% 50%}
-  50%{background-position:100% 50%}
-  100%{background-position:0% 50%}
-}
-header{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:10px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(6px);
-  flex-wrap:wrap; text-align:center;
-}
+:root{--blue1:#89f7fe;--blue2:#66a6ff;--text:#333;}
+body{font-family:'Roboto',sans-serif;margin:0;padding:0;
+background:linear-gradient(120deg,var(--blue1),var(--blue2));
+background-size:400% 400%;animation:gradientBG 15s ease infinite;color:var(--text);}
+@keyframes gradientBG{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:rgba(255,255,255,0.8);backdrop-filter:blur(6px);flex-wrap:wrap;text-align:center;}
 header img{height:60px;animation:breathe 3s ease-in-out infinite alternate;}
 @keyframes breathe{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
 header h1{font-size:24px;margin:10px auto;flex:1;text-align:center;}
-button{
-  padding:8px 14px;margin:4px;cursor:pointer;border:none;border-radius:6px;
-  background:var(--blue2);color:#fff;font-weight:600;transition:.3s;
-}
+button{padding:8px 14px;margin:4px;cursor:pointer;border:none;border-radius:6px;background:var(--blue2);color:#fff;font-weight:600;transition:.3s;}
 button:hover{background:var(--blue1);color:#000;}
-section{
-  background:rgba(255,255,255,0.95);margin:20px;padding:20px;border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.2);
-}
+section{background:rgba(255,255,255,0.95);margin:20px;padding:20px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
 h2{text-align:center;margin-top:0;}
 table{width:100%;border-collapse:collapse;margin-top:15px;}
 th,td{border:1px solid #aaa;padding:8px;text-align:center;}
+td.editable{background:#eef;cursor:pointer;}
 input,select{width:100%;padding:6px;margin-top:5px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;}
 input[readonly]{background:#eee;}
 form div{margin-bottom:10px;}
 .hidden{display:none;}
 .rtl{direction:rtl;text-align:right;font-family:'Tajawal',sans-serif;}
-@media(max-width:600px){
-  header h1{font-size:20px;}
-  section{margin:10px;padding:15px;}
-}
+@media(max-width:600px){header h1{font-size:20px;}section{margin:10px;padding:15px;}}
 </style>
 </head>
 <body>
@@ -61,7 +38,6 @@ form div{margin-bottom:10px;}
   <button onclick="toggleLang()" id="langBtn">العربية</button>
 </header>
 
-<!-- Stock before login -->
 <section id="stockSection">
   <h2 id="stockTitle">Stock</h2>
   <table id="stockTable">
@@ -77,10 +53,8 @@ form div{margin-bottom:10px;}
   </table>
 </section>
 
-<!-- Download report always visible -->
 <button onclick="exportReport()" id="exportReportBtn">Export Delivery Report</button>
 
-<!-- Login section -->
 <section id="loginSection">
   <h2 id="loginTitle">Login</h2>
   <div id="loginDiv">
@@ -90,9 +64,8 @@ form div{margin-bottom:10px;}
   </div>
 </section>
 
-<!-- Admin only section -->
 <section id="adminSection" class="hidden">
-  <h2>Add / Edit Stock</h2>
+  <h2>Add Stock Manually</h2>
   <form id="stockForm">
     <div><input type="text" id="newItem" placeholder="Item Name" required></div>
     <div><input type="number" id="newQty" placeholder="Manual Qty" min="1" required></div>
@@ -129,19 +102,9 @@ const BASE='https://your-vercel-deployment.vercel.app/api'; // replace
 const USERS=[{id:'admin',password:'1234'}];
 let stockData=[],transactions=[];
 
-const t={
-  en:{title:'Uniform Stock Manager',stock:'Stock',login:'Login',admin:'Admin Panel',exportReport:'Export Delivery Report',invalid:'Invalid credentials',langBtn:'العربية',addEntry:'Add Entry',addStock:'Add / Update Stock',iqama:'Iqama',emp:'Employee Name',date:'Date',item:'Item',qty:'Quantity',client:'Client',note:'Note'},
-  ar:{title:'إدارة المخزون',stock:'المخزون',login:'تسجيل الدخول',admin:'لوحة الإدارة',exportReport:'تصدير تقرير التسليم',invalid:'بيانات الدخول غير صحيحة',langBtn:'English',addEntry:'إضافة إدخال',addStock:'إضافة / تحديث المخزون',iqama:'الإقامة',emp:'اسم الموظف',date:'التاريخ',item:'الصنف',qty:'الكمية',client:'العميل',note:'ملاحظة'}
-};
-
 function toggleLang(){
   lang=lang==='en'?'ar':'en';
   document.body.className=lang==='ar'?'rtl':'';
-  document.getElementById('title').innerText=t[lang].title;
-  document.getElementById('stockTitle').innerText=t[lang].stock;
-  document.getElementById('loginTitle').innerText=t[lang].login;
-  document.getElementById('exportReportBtn').innerText=t[lang].exportReport;
-  document.getElementById('loginBtn').innerText=t[lang].login;
 }
 
 function renderStock(){
@@ -150,9 +113,30 @@ function renderStock(){
     const delivered = transactions.filter(tr=>tr.item===r.Item).reduce((a,b)=>a+b.qty,0);
     const available = r.ManualQty - delivered;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.Item}</td><td>${r.ManualQty}</td><td>${delivered}</td><td>${available}</td>`;
+    tr.innerHTML=`<td>${r.Item}</td>
+                  <td class="editable" data-item="${r.Item}">${r.ManualQty}</td>
+                  <td>${delivered}</td>
+                  <td>${available}</td>`;
     tbody.appendChild(tr);
   });
+  if(document.getElementById('adminSection').classList.contains('hidden')) return;
+  document.querySelectorAll('td.editable').forEach(td=>{
+    td.addEventListener('click',()=>editCell(td));
+  });
+}
+
+function editCell(td){
+  const oldVal=td.innerText;
+  td.innerHTML=`<input type="number" min="0" value="${oldVal}">`;
+  const input=td.querySelector('input');
+  input.focus();
+  input.onblur=async function(){
+    const newVal=parseInt(input.value);
+    const itemName=td.dataset.item;
+    const row=stockData.find(r=>r.Item===itemName);
+    if(row){ row.ManualQty=newVal; await fetch(BASE+'/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});}
+    renderStock();
+  };
 }
 
 async function loadStock(){
@@ -178,7 +162,6 @@ function populateItemSelect(){
   stockData.forEach(s=>sel.innerHTML+=`<option>${s.Item}</option>`);
 }
 
-// Login unlock
 function login(){
   const id=document.getElementById('userId').value.trim();
   const password=document.getElementById('password').value.trim();
@@ -186,10 +169,9 @@ function login(){
     document.getElementById('loginSection').style.display='none';
     document.getElementById('adminSection').classList.remove('hidden');
     loadStock(); loadTransactions();
-  } else alert(t[lang].invalid);
+  } else alert('Invalid credentials');
 }
 
-// Add / Update Stock manually
 document.getElementById('stockForm').onsubmit=async function(e){
   e.preventDefault();
   const name=document.getElementById('newItem').value.trim();
@@ -201,7 +183,6 @@ document.getElementById('stockForm').onsubmit=async function(e){
   renderStock(); populateItemSelect(); e.target.reset();
 };
 
-// Delivery / Return Entry
 document.getElementById('entryForm').onsubmit=async function(e){
   e.preventDefault();
   const entry={
@@ -223,14 +204,12 @@ document.getElementById('entryForm').onsubmit=async function(e){
   renderTransactions(); renderStock(); e.target.reset();
 };
 
-// Delete transaction
 async function deleteTrans(id){
   const idx=transactions.findIndex(t=>t.id===id); if(idx>-1) transactions.splice(idx,1);
   await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
   renderTransactions(); renderStock();
 }
 
-// Export report
 function exportReport(){
   let csv='ID,Iqama,Name,Date,Item,Qty,Client,Note\n';
   transactions.forEach(tn=>csv+=`${tn.id},${tn.iqama},${tn.emp},${tn.date},${tn.item},${tn.qty},${tn.client},${tn.note}\n`);
