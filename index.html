@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uniform Stock Manager</title>
+<style>
+body { font-family: Arial; padding: 20px; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+th, td { border: 1px solid #aaa; padding: 5px; text-align: center; }
+input, select { width: 100%; padding: 4px; }
+button { padding: 6px 10px; margin-top: 5px; cursor: pointer; }
+.rtl { direction: rtl; text-align: right; }
+</style>
+</head>
+<body>
+<h2 id="title">Uniform Stock Manager</h2>
+<button onclick="toggleLang()">English/العربية</button>
+
+<h3 id="loginTitle">Login</h3>
+<div id="loginDiv">
+  <input type="text" id="userId" placeholder="User ID">
+  <input type="password" id="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="mainApp" style="display:none">
+  <h3 id="stockTitle">Stock</h3>
+  <table id="stockTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Size</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="saveStock()">Save Stock</button>
+
+  <h3 id="entryTitle">Delivery / Return Entry</h3>
+  <form id="entryForm">
+    <input type="text" id="iqama" placeholder="Iqama">
+    <input type="text" id="emp" placeholder="Employee Name">
+    <input type="date" id="date" placeholder="Date">
+    <select id="item"></select>
+    <select id="size"></select>
+    <input type="number" id="qty" placeholder="Quantity">
+    <input type="text" id="client" placeholder="Client">
+    <input type="text" id="note" placeholder="Note">
+    <button type="submit">Add Entry</button>
+  </form>
+
+  <h3 id="transTitle">Transactions</h3>
+  <table id="transTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Iqama</th>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Item</th>
+        <th>Size</th>
+        <th>Qty</th>
+        <th>Client</th>
+        <th>Note</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const BASE = '/api';
+let lang='en';
+
+function toggleLang(){
+  lang = lang==='en'?'ar':'en';
+  document.body.className = lang==='ar'?'rtl':'';
+  document.getElementById('title').innerText = lang==='en'?'Uniform Stock Manager':'إدارة المخزون';
+}
+
+async function login(){
+  const res = await fetch(BASE+'/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+    id: document.getElementById('userId').value,
+    password: document.getElementById('password').value
+  })});
+  const data = await res.json();
+  if(data.success){
+    document.getElementById('loginDiv').style.display='none';
+    document.getElementById('mainApp').style.display='block';
+    loadStock();
+    loadTrans();
+  } else alert('Invalid credentials');
+}
+
+async function loadStock(){
+  const res = await fetch(BASE+'/stock');
+  const data = await res.json();
+  const tbody = document.querySelector('#stockTable tbody');
+  tbody.innerHTML='';
+  const itemSelect = document.getElementById('item');
+  const sizeSelect = document.getElementById('size');
+  itemSelect.innerHTML=''; sizeSelect.innerHTML='';
+  data.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`<td>${r.Item}</td><td>${r.Size}</td><td><input type="number" value="${r.Quantity}"></td>`;
+    tbody.appendChild(tr);
+    if(![...itemSelect.options].some(o=>o.value===r.Item)) itemSelect.innerHTML += `<option>${r.Item}</option>`;
+  });
+  document.getElementById('entryForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    const entry = {
+      id: Date.now().toString(),
+      iqama: document.getElementById('iqama').value,
+      emp: document.getElementById('emp').value,
+      date: document.getElementById('date').value,
+      item: document.getElementById('item').value,
+      size: document.getElementById('size').value,
+      qty: parseInt(document.getElementById('qty').value),
+      client: document.getElementById('client').value,
+      note: document.getElementById('note').value
+    };
+    // update stock
+    const row = data.find(r=>r.Item===entry.item && r.Size===entry.size);
+    if(row) row.Quantity -= entry.qty;
+    await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+    await fetch(BASE+'/transactions',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(entry)});
+    loadStock(); loadTrans();
+    e.target.reset();
+  }
+}
+
+async function saveStock(){
+  const tbody = document.querySelector('#stockTable tbody');
+  const data = Array.from(tbody.rows).map(r=>({
+    Item: r.cells[0].innerText,
+    Size: r.cells[1].innerText,
+    Quantity: parseInt(r.cells[2].querySelector('input').value)
+  }));
+  await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  alert(lang==='en'?'Saved':'تم الحفظ');
+}
+
+async function loadTrans(){
+  const res = await fetch(BASE+'/transactions');
+  const data = await res.json();
+  const tbody = document.querySelector('#transTable tbody');
+  tbody.innerHTML='';
+  data.forEach(t=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`<td>${t.id}</td><td>${t.iqama}</td><td>${t.emp}</td><td>${t.date}</td><td>${t.item}</td><td>${t.size}</td><td>${t.qty}</td><td>${t.client}</td><td>${t.note}</td><td><button onclick="deleteTrans('${t.id}')">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function deleteTrans(id){
+  await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
+  loadStock(); loadTrans();
+}
+</script>
+</body>
+</html>
