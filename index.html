@@ -98,8 +98,19 @@ input[readonly]{background:#eee;}
 let stockData = [];
 let transactions = [];
 const USERS = [{id:'admin',password:'1234'}];
+const API_BASE = '/api/stock';
 
 // STOCK FUNCTIONS
+function updateDeliveredAndAvailable() {
+  stockData.forEach(item => {
+    const deliveredQty = transactions
+      .filter(t => t.item === item.Item)
+      .reduce((sum, t) => sum + t.qty, 0);
+    item.Delivered = deliveredQty;
+    item.Available = (item.Added || 0) - deliveredQty;
+  });
+}
+
 function renderStock(){
   const tbody = document.querySelector('#stockTable tbody');
   tbody.innerHTML='';
@@ -108,13 +119,13 @@ function renderStock(){
     tr.innerHTML=`<td contenteditable="true">${row.Item}</td>
                     <td><input type="number" value="${row.Added||0}"></td>
                     <td><input type="number" value="${row.Delivered||0}" readonly></td>
-                    <td><input type="number" value="${(row.Added||0)-(row.Delivered||0)}" readonly></td>`;
+                    <td><input type="number" value="${row.Available||0}" readonly></td>`;
     tbody.appendChild(tr);
   });
   renderItemSelect();
 }
 
-function addStockRow(){ stockData.push({Item:'',Added:0,Delivered:0}); renderStock(); }
+function addStockRow(){ stockData.push({Item:'',Added:0,Delivered:0,Available:0}); renderStock(); }
 function deleteStockRow(){ stockData.pop(); renderStock(); }
 function addStockColumn(){
   const tbody=document.querySelector('#stockTable tbody');
@@ -132,10 +143,14 @@ async function saveStock(){
   stockData=[];
   tbody.querySelectorAll('tr').forEach(tr=>{
     const cells=tr.querySelectorAll('td');
-    stockData.push({Item:cells[0].innerText, Added:parseInt(cells[1].querySelector('input').value)||0, Delivered:parseInt(cells[2].querySelector('input').value)||0});
+    stockData.push({
+      Item:cells[0].innerText,
+      Added:parseInt(cells[1].querySelector('input').value)||0,
+      Delivered:parseInt(cells[2].querySelector('input').value)||0
+    });
   });
-  stockData.forEach(r=>r.Available=(r.Added||0)-(r.Delivered||0));
-  await fetch('/api/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
+  updateDeliveredAndAvailable();
+  await fetch(API_BASE,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
   renderStock();
   alert('Stock saved!');
 }
@@ -152,12 +167,12 @@ document.getElementById('entryForm').onsubmit=async function(e){
   const itemName=document.getElementById('itemSelect').value;
   const qty=parseInt(document.getElementById('qty').value);
   const stockRow=stockData.find(s=>s.Item===itemName);
-  if(!stockRow || (stockRow.Added-(stockRow.Delivered||0)<qty)){ alert('Not enough stock'); return; }
-  stockRow.Delivered=(stockRow.Delivered||0)+qty;
+  if(!stockRow || (stockRow.Available < qty)){ alert('Not enough stock'); return; }
   transactions.push({
     id:Date.now(), iqama:iqama.value, emp:emp.value, date:date.value,
     item:itemName, qty:qty, client:client.value, note:note.value
   });
+  updateDeliveredAndAvailable();
   await saveStock();
   renderTransactions();
   e.target.reset();
@@ -180,6 +195,7 @@ function deleteTrans(i){
   const stockRow=stockData.find(s=>s.Item===t.item);
   if(stockRow) stockRow.Delivered-=t.qty;
   transactions.splice(i,1);
+  updateDeliveredAndAvailable();
   renderTransactions();
   saveStock();
 }
@@ -213,9 +229,9 @@ function login(){
 // INITIAL STOCK LOAD
 async function loadStock(){
   try{
-    const res=await fetch('/api/stock'); stockData=await res.json();
+    const res=await fetch(API_BASE); stockData=await res.json();
   }catch(e){ console.error(e);}
-  stockData.forEach(r=>r.Available=(r.Added||0)-(r.Delivered||0));
+  updateDeliveredAndAvailable();
   renderStock();
 }
 loadStock();
