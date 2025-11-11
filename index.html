@@ -95,10 +95,8 @@ input[readonly]{background:#eee;}
 <script>
 let stockData = [];
 let transactions = [];
-const USERS = [{id:'admin',password:'1234'}];
-
-// 🔗 GOOGLE SHEETS API LINK
-const API_BASE = "https://script.google.com/macros/s/AKfycbxBzYTYwuV2UC30yZYDGd70EDn9BWkmgrDDQBQvkVdXiPrAeDThpzyF9XdVXpFtcIqn8A/exec";
+const USERS = [{ id:'admin', password:'1234' }];
+const API_BASE = "https://script.google.com/macros/s/AKfycbzLHbcPUxfh1KHiwLJfwBVNHWwP9bysIMCKk1YuNcr90oEQvmbWLwQaXj1RZoMv3quFog/exec";
 
 // STOCK FUNCTIONS
 function updateDeliveredAndAvailable() {
@@ -113,42 +111,51 @@ function updateDeliveredAndAvailable() {
 
 function renderStock(){
   const tbody = document.querySelector('#stockTable tbody');
-  tbody.innerHTML='';
-  stockData.forEach((row)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td contenteditable="true">${row.Item || ''}</td>
-                    <td><input type="number" value="${row.Added||0}"></td>
-                    <td><input type="number" value="${row.Delivered||0}" readonly></td>
-                    <td><input type="number" value="${row.Available||0}" readonly></td>`;
+  tbody.innerHTML = '';
+  stockData.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td contenteditable="true">${row.Item || ''}</td>
+      <td><input type="number" value="${row.Added || 0}"></td>
+      <td><input type="number" value="${row.Delivered || 0}" readonly></td>
+      <td><input type="number" value="${row.Available || 0}" readonly></td>
+    `;
     tbody.appendChild(tr);
   });
   renderItemSelect();
 }
 
-function addStockRow(){ stockData.push({Item:'',Added:0,Delivered:0,Available:0}); renderStock(); }
-function deleteStockRow(){ stockData.pop(); renderStock(); }
+function addStockRow(){
+  stockData.push({ Item:'', Added:0, Delivered:0, Available:0 });
+  renderStock();
+}
+
+function deleteStockRow(){
+  stockData.pop();
+  renderStock();
+}
 
 async function saveStock(){
-  const tbody=document.querySelector('#stockTable tbody');
-  stockData=[];
-  tbody.querySelectorAll('tr').forEach(tr=>{
-    const cells=tr.querySelectorAll('td');
+  const tbody = document.querySelector('#stockTable tbody');
+  stockData = [];
+  tbody.querySelectorAll('tr').forEach(tr => {
+    const cells = tr.querySelectorAll('td');
     stockData.push({
-      Item:cells[0].innerText.trim(),
-      Added:parseInt(cells[1].querySelector('input').value)||0,
-      Delivered:parseInt(cells[2].querySelector('input').value)||0,
-      Available:parseInt(cells[3].querySelector('input').value)||0
+      Item: cells[0].innerText.trim(),
+      Added: parseInt(cells[1].querySelector('input').value) || 0,
+      Delivered: parseInt(cells[2].querySelector('input').value) || 0,
+      Available: parseInt(cells[3].querySelector('input').value) || 0
     });
   });
   updateDeliveredAndAvailable();
   try {
     await fetch(API_BASE, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(stockData)
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(stockData)
     });
     alert('✅ Stock saved to Google Sheet!');
-  } catch (err) {
+  } catch(err) {
     console.error(err);
     alert('❌ Failed to save stock data.');
   }
@@ -157,87 +164,141 @@ async function saveStock(){
 
 // DELIVERY FORM
 function renderItemSelect(){
-  const select=document.getElementById('itemSelect');
-  select.innerHTML='';
-  stockData.forEach(r=>{ if(r.Item) select.innerHTML+=`<option>${r.Item}</option>`; });
+  const select = document.getElementById('itemSelect');
+  select.innerHTML = '';
+  stockData.forEach(r => {
+    if (r.Item) select.innerHTML += `<option>${r.Item}</option>`;
+  });
 }
 
-document.getElementById('entryForm').onsubmit=async function(e){
+document.getElementById('entryForm').onsubmit = async function(e){
   e.preventDefault();
-  const itemName=document.getElementById('itemSelect').value;
-  const qty=parseInt(document.getElementById('qty').value);
-  const stockRow=stockData.find(s=>s.Item===itemName);
-  if(!stockRow || (stockRow.Available < qty)){ alert('Not enough stock'); return; }
-  transactions.push({
-    id:Date.now(), iqama:iqama.value, emp:emp.value, date:date.value,
-    item:itemName, qty:qty, client:client.value, note:note.value
-  });
+  const itemName = document.getElementById('itemSelect').value;
+  const qty = parseInt(document.getElementById('qty').value);
+  const stockRow = stockData.find(s => s.Item === itemName);
+  if (!stockRow || (stockRow.Available < qty)) {
+    alert('Not enough stock');
+    return;
+  }
+
+  const entry = {
+    id: Date.now(),
+    iqama: document.getElementById('iqama').value,
+    emp: document.getElementById('emp').value,
+    date: document.getElementById('date').value,
+    item: itemName,
+    qty: qty,
+    client: document.getElementById('client').value,
+    note: document.getElementById('note').value
+  };
+  transactions.push(entry);
   updateDeliveredAndAvailable();
+
   await saveStock();
+  await saveTransactions();
   renderTransactions();
   e.target.reset();
+};
+
+// TRANSACTION SAVE
+async function saveTransactions() {
+  if (transactions.length === 0) return;
+  try {
+    await fetch(API_BASE, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'transactions', data: transactions })
+    });
+    console.log('Transactions saved to sheet.');
+  } catch(err) {
+    console.error('Error saving transactions:', err);
+  }
 }
 
-// TRANSACTIONS
+// TRANSACTIONS LIST
 function renderTransactions(){
-  const tbody=document.querySelector('#transTable tbody');
-  tbody.innerHTML='';
-  transactions.forEach((t,i)=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${t.id}</td><td>${t.iqama}</td><td>${t.emp}</td><td>${t.date}</td><td>${t.item}</td><td>${t.qty}</td><td>${t.client}</td><td>${t.note}</td>
-    <td><button onclick="deleteTrans(${i})">🗑</button></td>`;
+  const tbody = document.querySelector('#transTable tbody');
+  tbody.innerHTML = '';
+  transactions.forEach((t, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${t.id}</td>
+      <td>${t.iqama}</td>
+      <td>${t.emp}</td>
+      <td>${t.date}</td>
+      <td>${t.item}</td>
+      <td>${t.qty}</td>
+      <td>${t.client}</td>
+      <td>${t.note}</td>
+      <td><button onclick="deleteTrans(${i})">🗑</button></td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
 function deleteTrans(i){
-  const t=transactions[i];
-  const stockRow=stockData.find(s=>s.Item===t.item);
-  if(stockRow) stockRow.Delivered-=t.qty;
-  transactions.splice(i,1);
+  const t = transactions[i];
+  const stockRow = stockData.find(s => s.Item === t.item);
+  if (stockRow) stockRow.Delivered -= t.qty;
+  transactions.splice(i, 1);
   updateDeliveredAndAvailable();
   renderTransactions();
   saveStock();
+  saveTransactions();
 }
 
 // EXPORT CSV
 function exportStock(){
-  let csv='Item,Added,Delivered,Available\n';
-  stockData.forEach(r=>csv+=`${r.Item},${r.Added},${r.Delivered},${r.Available}\n`);
-  downloadCSV(csv,'stock.csv');
+  let csv = 'Item,Added,Delivered,Available\n';
+  stockData.forEach(r => csv += `${r.Item},${r.Added},${r.Delivered},${r.Available}\n`);
+  downloadCSV(csv, 'stock.csv');
 }
+
 function exportReport(){
-  let csv='ID,Iqama,Name,Date,Item,Qty,Client,Note\n';
-  transactions.forEach(t=>csv+=`${t.id},${t.iqama},${t.emp},${t.date},${t.item},${t.qty},${t.client},${t.note}\n`);
-  downloadCSV(csv,'transactions.csv');
+  let csv = 'ID,Iqama,Name,Date,Item,Qty,Client,Note\n';
+  transactions.forEach(t => csv += `${t.id},${t.iqama},${t.emp},${t.date},${t.item},${t.qty},${t.client},${t.note}\n`);
+  downloadCSV(csv, 'transactions.csv');
 }
-function downloadCSV(csv,name){ const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+
+function downloadCSV(csv, name){
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // LOGIN
 function login(){
-  const id=document.getElementById('userId').value.trim();
-  const password=document.getElementById('password').value.trim();
-  const user=USERS.find(u=>u.id===id && u.password===password);
-  if(user){
+  const id = document.getElementById('userId').value.trim();
+  const password = document.getElementById('password').value.trim();
+  const user = USERS.find(u => u.id === id && u.password === password);
+  if (user) {
     document.getElementById('deliverySection').classList.remove('hidden');
-    document.getElementById('loginSection').style.display='none';
+    document.getElementById('loginSection').style.display = 'none';
     document.getElementById('stockButtons').classList.remove('hidden');
-    renderItemSelect(); renderTransactions();
-  } else alert('Invalid credentials');
+    renderItemSelect();
+    renderTransactions();
+  } else {
+    alert('Invalid credentials');
+  }
 }
 
-// INITIAL STOCK LOAD
+// INITIAL LOAD
 async function loadStock(){
   try {
-    const res=await fetch(API_BASE);
-    stockData=await res.json();
-  } catch(e) {
-    console.error('Error loading stock:', e);
+    const res = await fetch(API_BASE);
+    stockData = await res.json();
+  } catch(err) {
+    console.error('Error loading stock:', err);
   }
   updateDeliveredAndAvailable();
   renderStock();
 }
 loadStock();
 </script>
+
 </body>
 </html>
