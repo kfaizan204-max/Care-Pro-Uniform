@@ -1,7 +1,7 @@
 {
   "stock": [
-    { "Item": "Shirt", "Added": 10, "Delivered": 2, "Available": 8 },
-    { "Item": "Pants", "Added": 20, "Delivered": 5, "Available": 15 }
+    { "Item": "Beige Pants Formal Fit – 27 – بنطال بيج رسمي – صغير جدًا", "Added": 10, "Delivered": 1, "Available": 9 },
+    { "Item": "Beige Pants Formal Fit – 28 – بنطال بيج رسمي – صغير", "Added": 10, "Delivered": 1, "Available": 9 }
   ],
   "transactions": []
 }
