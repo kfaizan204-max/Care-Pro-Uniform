@@ -5,27 +5,68 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uniform Stock Manager</title>
 <style>
-body { font-family: Arial; padding: 20px; }
-table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-th, td { border: 1px solid #aaa; padding: 5px; text-align: center; }
-input, select { width: 100%; padding: 4px; }
-button { padding: 6px 10px; margin-top: 5px; cursor: pointer; }
-.rtl { direction: rtl; text-align: right; }
+  body { 
+    font-family: Arial, sans-serif; 
+    margin: 0; 
+    padding: 20px; 
+    background: #f5f5f5; 
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+  }
+  header img { height: 50px; }
+  header h1 { margin: 0; font-size: 24px; }
+  button { padding: 6px 12px; cursor: pointer; margin: 5px; }
+  .rtl { direction: rtl; text-align: right; }
+  section { 
+    background: #fff; 
+    padding: 20px; 
+    margin-bottom: 30px; 
+    border-radius: 8px; 
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  }
+  table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 15px;
+  }
+  th, td { 
+    border: 1px solid #aaa; 
+    padding: 8px; 
+    text-align: center; 
+  }
+  input, select { 
+    width: 100%; 
+    padding: 6px; 
+    margin-top: 5px; 
+    box-sizing: border-box; 
+  }
+  form div { margin-bottom: 10px; }
 </style>
 </head>
 <body>
-<h2 id="title">Uniform Stock Manager</h2>
-<button onclick="toggleLang()">English/العربية</button>
 
-<h3 id="loginTitle">Login</h3>
-<div id="loginDiv">
-  <input type="text" id="userId" placeholder="User ID">
-  <input type="password" id="password" placeholder="Password">
-  <button onclick="login()">Login</button>
-</div>
+<header>
+  <img src="logo.png" alt="Logo">
+  <h1 id="title">Uniform Stock Manager</h1>
+  <button onclick="toggleLang()">English / العربية</button>
+</header>
 
-<div id="mainApp" style="display:none">
-  <h3 id="stockTitle">Stock</h3>
+<section id="loginSection">
+  <h2 id="loginTitle">Login</h2>
+  <div id="loginDiv">
+    <div><input type="text" id="userId" placeholder="User ID"></div>
+    <div><input type="password" id="password" placeholder="Password"></div>
+    <button onclick="login()">Login</button>
+  </div>
+</section>
+
+<section id="mainApp" style="display:none">
+  
+  <h2 id="stockTitle">Stock</h2>
   <table id="stockTable">
     <thead>
       <tr>
@@ -38,20 +79,22 @@ button { padding: 6px 10px; margin-top: 5px; cursor: pointer; }
   </table>
   <button onclick="saveStock()">Save Stock</button>
 
-  <h3 id="entryTitle">Delivery / Return Entry</h3>
+  <h2 id="entryTitle">Delivery / Return Entry</h2>
   <form id="entryForm">
-    <input type="text" id="iqama" placeholder="Iqama">
-    <input type="text" id="emp" placeholder="Employee Name">
-    <input type="date" id="date" placeholder="Date">
-    <select id="item"></select>
-    <select id="size"></select>
-    <input type="number" id="qty" placeholder="Quantity">
-    <input type="text" id="client" placeholder="Client">
-    <input type="text" id="note" placeholder="Note">
+    <div><input type="text" id="iqama" placeholder="Iqama"></div>
+    <div><input type="text" id="emp" placeholder="Employee Name"></div>
+    <div><input type="date" id="date"></div>
+    <div>
+      <select id="item"></select>
+      <select id="size"></select>
+    </div>
+    <div><input type="number" id="qty" placeholder="Quantity"></div>
+    <div><input type="text" id="client" placeholder="Client"></div>
+    <div><input type="text" id="note" placeholder="Note"></div>
     <button type="submit">Add Entry</button>
   </form>
 
-  <h3 id="transTitle">Transactions</h3>
+  <h2 id="transTitle">Transactions</h2>
   <table id="transTable">
     <thead>
       <tr>
@@ -69,7 +112,8 @@ button { padding: 6px 10px; margin-top: 5px; cursor: pointer; }
     </thead>
     <tbody></tbody>
   </table>
-</div>
+
+</section>
 
 <script>
 const BASE = '/api';
@@ -81,20 +125,26 @@ function toggleLang(){
   document.getElementById('title').innerText = lang==='en'?'Uniform Stock Manager':'إدارة المخزون';
 }
 
+// Login
 async function login(){
-  const res = await fetch(BASE+'/login', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
-    id: document.getElementById('userId').value,
-    password: document.getElementById('password').value
-  })});
+  const res = await fetch(BASE+'/login', {
+    method:'POST', 
+    headers:{'Content-Type':'application/json'}, 
+    body:JSON.stringify({
+      id: document.getElementById('userId').value,
+      password: document.getElementById('password').value
+    })
+  });
   const data = await res.json();
   if(data.success){
-    document.getElementById('loginDiv').style.display='none';
+    document.getElementById('loginSection').style.display='none';
     document.getElementById('mainApp').style.display='block';
     loadStock();
     loadTrans();
   } else alert('Invalid credentials');
 }
 
+// Load stock
 async function loadStock(){
   const res = await fetch(BASE+'/stock');
   const data = await res.json();
@@ -109,6 +159,7 @@ async function loadStock(){
     tbody.appendChild(tr);
     if(![...itemSelect.options].some(o=>o.value===r.Item)) itemSelect.innerHTML += `<option>${r.Item}</option>`;
   });
+
   document.getElementById('entryForm').onsubmit = async (e)=>{
     e.preventDefault();
     const entry = {
@@ -122,7 +173,6 @@ async function loadStock(){
       client: document.getElementById('client').value,
       note: document.getElementById('note').value
     };
-    // update stock
     const row = data.find(r=>r.Item===entry.item && r.Size===entry.size);
     if(row) row.Quantity -= entry.qty;
     await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
@@ -132,6 +182,7 @@ async function loadStock(){
   }
 }
 
+// Save stock
 async function saveStock(){
   const tbody = document.querySelector('#stockTable tbody');
   const data = Array.from(tbody.rows).map(r=>({
@@ -143,6 +194,7 @@ async function saveStock(){
   alert(lang==='en'?'Saved':'تم الحفظ');
 }
 
+// Load transactions
 async function loadTrans(){
   const res = await fetch(BASE+'/transactions');
   const data = await res.json();
@@ -155,10 +207,12 @@ async function loadTrans(){
   });
 }
 
+// Delete transaction
 async function deleteTrans(id){
   await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
   loadStock(); loadTrans();
 }
 </script>
+
 </body>
 </html>
