@@ -5,67 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uniform Stock Manager</title>
 <style>
-  body { 
-    font-family: Arial, sans-serif; 
-    margin: 0; 
-    padding: 20px; 
-    background: #f5f5f5; 
-  }
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 30px;
-  }
-  header img { height: 50px; }
-  header h1 { margin: 0; font-size: 24px; }
-  button { padding: 6px 12px; cursor: pointer; margin: 5px; }
-  .rtl { direction: rtl; text-align: right; }
-  section { 
-    background: #fff; 
-    padding: 20px; 
-    margin-bottom: 30px; 
-    border-radius: 8px; 
-    box-shadow: 0 0 5px rgba(0,0,0,0.1);
-  }
-  table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    margin-top: 15px;
-  }
-  th, td { 
-    border: 1px solid #aaa; 
-    padding: 8px; 
-    text-align: center; 
-  }
-  input, select { 
-    width: 100%; 
-    padding: 6px; 
-    margin-top: 5px; 
-    box-sizing: border-box; 
-  }
-  form div { margin-bottom: 10px; }
+  body { font-family: Arial, sans-serif; margin:0; padding:20px; background:#f5f5f5; }
+  header { display:flex; align-items:center; justify-content:space-between; margin-bottom:30px; }
+  header img { height:60px; margin-right:20px; }
+  header h1 { margin:0; font-size:26px; flex:1; }
+  button { padding:6px 12px; cursor:pointer; margin:5px; }
+  .rtl { direction:rtl; text-align:right; }
+  section { background:#fff; padding:20px; margin-bottom:30px; border-radius:8px; box-shadow:0 0 5px rgba(0,0,0,0.1); }
+  table { width:100%; border-collapse:collapse; margin-top:15px; }
+  th, td { border:1px solid #aaa; padding:8px; text-align:center; }
+  input, select { width:100%; padding:6px; margin-top:5px; box-sizing:border-box; }
+  form div { margin-bottom:10px; }
+  input[readonly] { background:#eee; }
+  .hidden { display:none; }
 </style>
 </head>
 <body>
 
 <header>
-  <img src="logo.png" alt="Logo">
+  <img src="https://i.ibb.co/N0Bdr5N/Care-Pro-Logo-Jan-2025-Transparent.png" alt="Logo">
   <h1 id="title">Uniform Stock Manager</h1>
   <button onclick="toggleLang()">English / العربية</button>
 </header>
 
-<section id="loginSection">
-  <h2 id="loginTitle">Login</h2>
-  <div id="loginDiv">
-    <div><input type="text" id="userId" placeholder="User ID"></div>
-    <div><input type="password" id="password" placeholder="Password"></div>
-    <button onclick="login()">Login</button>
-  </div>
-</section>
-
-<section id="mainApp" style="display:none">
-  
+<section id="stockSection">
   <h2 id="stockTitle">Stock</h2>
   <table id="stockTable">
     <thead>
@@ -77,8 +40,18 @@
     </thead>
     <tbody></tbody>
   </table>
-  <button onclick="saveStock()">Save Stock</button>
+</section>
 
+<section id="loginSection">
+  <h2 id="loginTitle">Login</h2>
+  <div id="loginDiv">
+    <div><input type="text" id="userId" placeholder="User ID"></div>
+    <div><input type="password" id="password" placeholder="Password"></div>
+    <button onclick="login()">Login</button>
+  </div>
+</section>
+
+<section id="mainApp" class="hidden">
   <h2 id="entryTitle">Delivery / Return Entry</h2>
   <form id="entryForm">
     <div><input type="text" id="iqama" placeholder="Iqama"></div>
@@ -112,55 +85,83 @@
     </thead>
     <tbody></tbody>
   </table>
-
 </section>
 
 <script>
-const BASE = '/api';
+const BASE = '/api'; // Replace with your actual backend API URL if deployed
 let lang='en';
 
+// Example user credentials (can add more)
+const USERS = [{id:'admin', password:'1234'}];
+
+// Sample stock data (you can load from backend)
+let stockData = [
+  {Item:'WHITE OXFORD SHIRT LONG SLEEVES', Size:'SMALL', Quantity:40},
+  {Item:'WHITE OXFORD SHIRT LONG SLEEVES', Size:'MEDIUM', Quantity:40},
+  {Item:'WHITE OXFORD SHIRT LONG SLEEVES', Size:'LARGE', Quantity:20},
+  {Item:'BLACK OXFORD SHIRT LONG SLEEVES', Size:'SMALL', Quantity:20},
+  {Item:'BLACK OXFORD SHIRT LONG SLEEVES', Size:'MEDIUM', Quantity:20},
+  {Item:'BLACK OXFORD SHIRT LONG SLEEVES', Size:'LARGE', Quantity:10}
+];
+
+// Transactions array
+let transactions = [];
+
+// Toggle language
 function toggleLang(){
   lang = lang==='en'?'ar':'en';
   document.body.className = lang==='ar'?'rtl':'';
   document.getElementById('title').innerText = lang==='en'?'Uniform Stock Manager':'إدارة المخزون';
+  document.getElementById('stockTitle').innerText = lang==='en'?'Stock':'المخزون';
+  document.getElementById('loginTitle').innerText = lang==='en'?'Login':'تسجيل الدخول';
+  document.getElementById('entryTitle').innerText = lang==='en'?'Delivery / Return Entry':'تسليم / إرجاع';
+  document.getElementById('transTitle').innerText = lang==='en'?'Transactions':'المعاملات';
 }
 
-// Login
-async function login(){
-  const res = await fetch(BASE+'/login', {
-    method:'POST', 
-    headers:{'Content-Type':'application/json'}, 
-    body:JSON.stringify({
-      id: document.getElementById('userId').value,
-      password: document.getElementById('password').value
-    })
-  });
-  const data = await res.json();
-  if(data.success){
-    document.getElementById('loginSection').style.display='none';
-    document.getElementById('mainApp').style.display='block';
-    loadStock();
-    loadTrans();
-  } else alert('Invalid credentials');
-}
-
-// Load stock
-async function loadStock(){
-  const res = await fetch(BASE+'/stock');
-  const data = await res.json();
+// Render stock table
+function renderStock(readOnly=true){
   const tbody = document.querySelector('#stockTable tbody');
   tbody.innerHTML='';
   const itemSelect = document.getElementById('item');
   const sizeSelect = document.getElementById('size');
   itemSelect.innerHTML=''; sizeSelect.innerHTML='';
-  data.forEach(r=>{
+  stockData.forEach(r=>{
     const tr = document.createElement('tr');
-    tr.innerHTML=`<td>${r.Item}</td><td>${r.Size}</td><td><input type="number" value="${r.Quantity}"></td>`;
+    tr.innerHTML=`<td>${r.Item}</td><td>${r.Size}</td><td><input type="number" value="${r.Quantity}" ${readOnly?'readonly':''}></td>`;
     tbody.appendChild(tr);
     if(![...itemSelect.options].some(o=>o.value===r.Item)) itemSelect.innerHTML += `<option>${r.Item}</option>`;
   });
+}
 
-  document.getElementById('entryForm').onsubmit = async (e)=>{
+// Render transactions
+function renderTransactions(){
+  const tbody = document.querySelector('#transTable tbody');
+  tbody.innerHTML='';
+  transactions.forEach(t=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML=`<td>${t.id}</td><td>${t.iqama}</td><td>${t.emp}</td><td>${t.date}</td><td>${t.item}</td><td>${t.size}</td><td>${t.qty}</td><td>${t.client}</td><td>${t.note}</td>
+    <td><button onclick="deleteTrans('${t.id}')">Delete</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// Login function
+function login(){
+  const id = document.getElementById('userId').value;
+  const pass = document.getElementById('password').value;
+  const user = USERS.find(u=>u.id===id && u.password===pass);
+  if(user){
+    document.getElementById('loginSection').style.display='none';
+    document.getElementById('mainApp').classList.remove('hidden');
+    renderStock(false);
+    renderTransactions();
+    setupEntryForm();
+  } else alert('Invalid credentials');
+}
+
+// Setup entry form
+function setupEntryForm(){
+  document.getElementById('entryForm').onsubmit = function(e){
     e.preventDefault();
     const entry = {
       id: Date.now().toString(),
@@ -173,46 +174,31 @@ async function loadStock(){
       client: document.getElementById('client').value,
       note: document.getElementById('note').value
     };
-    const row = data.find(r=>r.Item===entry.item && r.Size===entry.size);
+    // update stock
+    const row = stockData.find(r=>r.Item===entry.item && r.Size===entry.size);
     if(row) row.Quantity -= entry.qty;
-    await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-    await fetch(BASE+'/transactions',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(entry)});
-    loadStock(); loadTrans();
+    transactions.unshift(entry);
+    renderStock(false);
+    renderTransactions();
     e.target.reset();
   }
 }
 
-// Save stock
-async function saveStock(){
-  const tbody = document.querySelector('#stockTable tbody');
-  const data = Array.from(tbody.rows).map(r=>({
-    Item: r.cells[0].innerText,
-    Size: r.cells[1].innerText,
-    Quantity: parseInt(r.cells[2].querySelector('input').value)
-  }));
-  await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
-  alert(lang==='en'?'Saved':'تم الحفظ');
-}
-
-// Load transactions
-async function loadTrans(){
-  const res = await fetch(BASE+'/transactions');
-  const data = await res.json();
-  const tbody = document.querySelector('#transTable tbody');
-  tbody.innerHTML='';
-  data.forEach(t=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML=`<td>${t.id}</td><td>${t.iqama}</td><td>${t.emp}</td><td>${t.date}</td><td>${t.item}</td><td>${t.size}</td><td>${t.qty}</td><td>${t.client}</td><td>${t.note}</td><td><button onclick="deleteTrans('${t.id}')">Delete</button></td>`;
-    tbody.appendChild(tr);
-  });
-}
-
 // Delete transaction
-async function deleteTrans(id){
-  await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
-  loadStock(); loadTrans();
+function deleteTrans(id){
+  const entry = transactions.find(t=>t.id===id);
+  if(entry){
+    // restore stock
+    const row = stockData.find(r=>r.Item===entry.item && r.Size===entry.size);
+    if(row) row.Quantity += entry.qty;
+  }
+  transactions = transactions.filter(t=>t.id!==id);
+  renderStock(false);
+  renderTransactions();
 }
-</script>
 
+// Initial render
+renderStock(true);
+</script>
 </body>
 </html>
