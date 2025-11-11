@@ -1,47 +1,36 @@
-// /api/saveData.js
-import { Octokit } from "@octokit/rest";
+import fs from "fs";
+import path from "path";
 
 export default async function handler(req, res) {
-  const owner = "kfaizan204-max";        // your GitHub username
-  const repo = "Care-Pro-Uniform";       // your repo name
-  const path = "data.json";              // file to read/write
-  const token = process.env.GITHUB_TOKEN; // stored safely in Vercel
-
-  const octokit = new Octokit({ auth: token });
-
   try {
-    // get the file from GitHub
-    const { data } = await octokit.repos.getContent({
-      owner,
-      repo,
-      path,
-    });
+    const filePath = path.join(process.cwd(), "data.json");
 
-    const content = Buffer.from(data.content, "base64").toString();
-
+    // ---- READ DATA ----
     if (req.method === "GET") {
-      res.status(200).json(JSON.parse(content));
+      const jsonData = fs.readFileSync(filePath, "utf-8");
+      const data = JSON.parse(jsonData);
+      res.status(200).json(data);
       return;
     }
 
+    // ---- WRITE DATA ----
     if (req.method === "POST") {
-      const updated = JSON.stringify(req.body, null, 2);
+      const body = req.body;
 
-      await octokit.repos.createOrUpdateFileContents({
-        owner,
-        repo,
-        path,
-        message: "Update data.json from Vercel",
-        content: Buffer.from(updated).toString("base64"),
-        sha: data.sha,
-      });
+      if (!body || !body.stock) {
+        res.status(400).json({ error: "Missing stock or transaction data" });
+        return;
+      }
 
+      fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
       res.status(200).json({ success: true });
       return;
     }
 
-    res.status(405).json({ error: "Method not allowed" });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
+    res.setHeader("Allow", ["GET", "POST"]);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+  } catch (err) {
+    console.error("❌ Server error:", err);
+    res.status(500).json({ error: "Internal Server Error", message: err.message });
   }
 }
