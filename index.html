@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Uniform Stock Manager | مدير المخزون</title>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -27,7 +27,7 @@ header{
   padding:10px 20px; background:rgba(255,255,255,0.8); backdrop-filter:blur(6px);
   flex-wrap:wrap; text-align:center;
 }
-header img{height:60px; animation:breathe 3s ease-in-out infinite alternate;}
+header img{height:60px;animation:breathe 3s ease-in-out infinite alternate;}
 @keyframes breathe{0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
 header h1{font-size:24px;margin:10px auto;flex:1;text-align:center;}
 button{
@@ -61,32 +61,26 @@ form div{margin-bottom:10px;}
   <button onclick="toggleLang()" id="langBtn">العربية</button>
 </header>
 
+<!-- Stock before login -->
 <section id="stockSection">
   <h2 id="stockTitle">Stock</h2>
-
-  <!-- Add new stock item -->
-  <form id="addStockForm">
-    <div><input type="text" id="newItem" placeholder="Item Name" required></div>
-    <div><input type="text" id="newDesc" placeholder="Description"></div>
-    <div><input type="number" id="newQty" placeholder="Manual Qty Added" required min="0"></div>
-    <button type="submit" id="addStockBtn">Add Stock Item</button>
-  </form>
-
   <table id="stockTable">
     <thead>
       <tr>
         <th>Item</th>
-        <th>Description</th>
         <th>Manual Qty</th>
         <th>Delivered Qty</th>
         <th>Available Qty</th>
-        <th>Action</th>
       </tr>
     </thead>
     <tbody></tbody>
   </table>
 </section>
 
+<!-- Download report always visible -->
+<button onclick="exportReport()" id="exportReportBtn">Export Delivery Report</button>
+
+<!-- Login section -->
 <section id="loginSection">
   <h2 id="loginTitle">Login</h2>
   <div id="loginDiv">
@@ -96,30 +90,33 @@ form div{margin-bottom:10px;}
   </div>
 </section>
 
-<section id="mainApp" class="hidden">
-  <h2 id="entryTitle">Delivery / Return Entry</h2>
-  <button onclick="exportReport()" id="exportReportBtn">Export Delivery Report</button>
+<!-- Admin only section -->
+<section id="adminSection" class="hidden">
+  <h2>Add / Edit Stock</h2>
+  <form id="stockForm">
+    <div><input type="text" id="newItem" placeholder="Item Name" required></div>
+    <div><input type="number" id="newQty" placeholder="Manual Qty" min="1" required></div>
+    <button type="submit">Add / Update Stock</button>
+  </form>
+
+  <h2>Delivery / Return Entry</h2>
   <form id="entryForm">
     <div><input type="text" id="iqama" placeholder="Iqama" required></div>
     <div><input type="text" id="emp" placeholder="Employee Name" required></div>
     <div><input type="date" id="date" required></div>
-    <div>
-      <select id="item"></select>
-      <select id="size"></select>
-    </div>
+    <div><select id="item"></select></div>
     <div><input type="number" id="qty" placeholder="Quantity" required min="1"></div>
     <div><input type="text" id="client" placeholder="Client"></div>
     <div><input type="text" id="note" placeholder="Note"></div>
-    <button type="submit" id="addEntryBtn">Add Entry</button>
+    <button type="submit">Add Entry</button>
   </form>
 
-  <h2 id="transTitle">Transactions</h2>
+  <h2>Transactions</h2>
   <table id="transTable">
     <thead>
       <tr>
         <th>ID</th><th>Iqama</th><th>Name</th><th>Date</th>
-        <th>Item</th><th>Size</th><th>Qty</th>
-        <th>Client</th><th>Note</th><th>Action</th>
+        <th>Item</th><th>Qty</th><th>Client</th><th>Note</th><th>Action</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -128,21 +125,13 @@ form div{margin-bottom:10px;}
 
 <script>
 let lang='en';
-const BASE='https://your-vercel-deployment.vercel.app/api'; // replace with your Vercel API
+const BASE='https://your-vercel-deployment.vercel.app/api'; // replace
+const USERS=[{id:'admin',password:'1234'}];
 let stockData=[],transactions=[];
 
-// Language text
 const t={
-  en:{
-    title:'Uniform Stock Manager', stock:'Stock', login:'Login', entry:'Delivery / Return Entry', trans:'Transactions',
-    addStock:'Add Stock Item', addEntry:'Add Entry', notEnough:'Not enough stock', invalid:'Invalid credentials',
-    langBtn:'العربية', exportReport:'Export Delivery Report', manualQty:'Manual Qty Added'
-  },
-  ar:{
-    title:'إدارة المخزون', stock:'المخزون', login:'تسجيل الدخول', entry:'تسليم / إرجاع', trans:'المعاملات',
-    addStock:'إضافة مخزون', addEntry:'إضافة إدخال', notEnough:'الكمية غير كافية', invalid:'بيانات الدخول غير صحيحة',
-    langBtn:'English', exportReport:'تصدير تقرير التسليم', manualQty:'الكمية المضافة يدوياً'
-  }
+  en:{title:'Uniform Stock Manager',stock:'Stock',login:'Login',admin:'Admin Panel',exportReport:'Export Delivery Report',invalid:'Invalid credentials',langBtn:'العربية',addEntry:'Add Entry',addStock:'Add / Update Stock',iqama:'Iqama',emp:'Employee Name',date:'Date',item:'Item',qty:'Quantity',client:'Client',note:'Note'},
+  ar:{title:'إدارة المخزون',stock:'المخزون',login:'تسجيل الدخول',admin:'لوحة الإدارة',exportReport:'تصدير تقرير التسليم',invalid:'بيانات الدخول غير صحيحة',langBtn:'English',addEntry:'إضافة إدخال',addStock:'إضافة / تحديث المخزون',iqama:'الإقامة',emp:'اسم الموظف',date:'التاريخ',item:'الصنف',qty:'الكمية',client:'العميل',note:'ملاحظة'}
 };
 
 function toggleLang(){
@@ -151,164 +140,105 @@ function toggleLang(){
   document.getElementById('title').innerText=t[lang].title;
   document.getElementById('stockTitle').innerText=t[lang].stock;
   document.getElementById('loginTitle').innerText=t[lang].login;
-  document.getElementById('entryTitle').innerText=t[lang].entry;
-  document.getElementById('transTitle').innerText=t[lang].trans;
-  document.getElementById('addStockBtn').innerText=t[lang].addStock;
-  document.getElementById('addEntryBtn').innerText=t[lang].addEntry;
   document.getElementById('exportReportBtn').innerText=t[lang].exportReport;
-  document.getElementById('langBtn').innerText=t[lang].langBtn;
-}
-
-// ---------------- LOGIN ----------------
-async function login(){
-  const id=document.getElementById('userId').value.trim();
-  const password=document.getElementById('password').value.trim();
-  // simple local check for demo
-  if(id==='admin' && password==='1234'){
-    document.getElementById('loginSection').style.display='none';
-    document.getElementById('mainApp').classList.remove('hidden');
-    await loadStock(); await loadTransactions(); setupEntryForm();
-  } else alert(t[lang].invalid);
-}
-
-// ---------------- STOCK ----------------
-async function loadStock(){
-  const res=await fetch(BASE+'/stock'); 
-  stockData=await res.json(); 
-  calculateStock();
-  renderStock();
-}
-
-function calculateStock(){
-  stockData.forEach(item=>item.delivered=0);
-  transactions.forEach(t=>{
-    const s = stockData.find(x=>x.Item===t.item);
-    if(s) s.delivered += t.qty;
-  });
-  stockData.forEach(item=>{
-    item.available = (item.manualQty||0) - (item.delivered||0);
-  });
+  document.getElementById('loginBtn').innerText=t[lang].login;
 }
 
 function renderStock(){
-  const tbody=document.querySelector('#stockTable tbody');
-  tbody.innerHTML='';
-  stockData.forEach((item,i)=>{
+  const tbody=document.querySelector('#stockTable tbody'); tbody.innerHTML='';
+  stockData.forEach(r=>{
+    const delivered = transactions.filter(tr=>tr.item===r.Item).reduce((a,b)=>a+b.qty,0);
+    const available = r.ManualQty - delivered;
     const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${item.Item}</td>
-      <td>${item.desc||''}</td>
-      <td><input type="number" value="${item.manualQty||0}" min="0" onchange="updateManualQty(${i},this.value)"></td>
-      <td>${item.delivered||0}</td>
-      <td>${item.available||0}</td>
-      <td><button onclick="saveStock(${i})">Save</button></td>
-    `;
+    tr.innerHTML=`<td>${r.Item}</td><td>${r.ManualQty}</td><td>${delivered}</td><td>${available}</td>`;
     tbody.appendChild(tr);
   });
 }
 
-function updateManualQty(index,value){
-  stockData[index].manualQty=parseInt(value)||0;
-  stockData[index].available=stockData[index].manualQty-stockData[index].delivered;
-  renderStock();
+async function loadStock(){
+  const res=await fetch(BASE+'/stock'); stockData=await res.json(); renderStock(); populateItemSelect();
 }
 
-async function saveStock(index){
-  await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(stockData)});
-  alert('Stock saved!');
-}
-
-// Add new stock
-document.getElementById('addStockForm').onsubmit=async(e)=>{
-  e.preventDefault();
-  const item=document.getElementById('newItem').value.trim();
-  const desc=document.getElementById('newDesc').value.trim();
-  const qty=parseInt(document.getElementById('newQty').value.trim());
-  if(!item || isNaN(qty)) return;
-  stockData.push({Item:item, desc, manualQty:qty, delivered:0, available:qty});
-  await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(stockData)});
-  document.getElementById('addStockForm').reset();
-  renderStock();
-};
-
-// ---------------- TRANSACTIONS ----------------
 async function loadTransactions(){
-  const res=await fetch(BASE+'/transactions'); transactions=await res.json(); calculateStock(); renderStock(); renderTransactions();
+  const res=await fetch(BASE+'/transactions'); transactions=await res.json(); renderTransactions(); renderStock();
 }
 
 function renderTransactions(){
-  const tbody=document.querySelector('#transTable tbody');
-  tbody.innerHTML='';
+  const tbody=document.querySelector('#transTable tbody'); tbody.innerHTML='';
   transactions.forEach(tn=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${tn.id}</td><td>${tn.iqama}</td><td>${tn.emp}</td><td>${tn.date}</td>
-      <td>${tn.item}</td><td>${tn.size}</td><td>${tn.qty}</td>
-      <td>${tn.client}</td><td>${tn.note}</td>
-      <td><button onclick="deleteTrans('${tn.id}')">🗑</button></td>`;
+    tr.innerHTML=`<td>${tn.id}</td><td>${tn.iqama}</td><td>${tn.emp}</td><td>${tn.date}</td><td>${tn.item}</td><td>${tn.qty}</td><td>${tn.client}</td><td>${tn.note}</td>
+    <td><button onclick="deleteTrans('${tn.id}')">🗑</button></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function setupEntryForm(){
-  const form=document.getElementById('entryForm');
-  const itemSel=document.getElementById('item');
-  const sizeSel=document.getElementById('size');
-  itemSel.addEventListener('change',updateSizes); updateSizes();
-  form.onsubmit=async(e)=>{
-    e.preventDefault();
-    const entry={
-      id:Date.now().toString(),
-      iqama:iqama.value, emp:emp.value, date:date.value,
-      item:itemSel.value, size:sizeSel.value,
-      qty:parseInt(qty.value), client:client.value, note:note.value
-    };
-    const row=stockData.find(r=>r.Item===entry.item && r.Size===entry.size);
-    if(!row || row.available<entry.qty){alert(t[lang].notEnough); return;}
-    row.available-=entry.qty;
-    row.delivered += entry.qty;
-    await fetch(BASE+'/stock',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(stockData)});
-    await fetch(BASE+'/transactions',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(entry)});
-    await loadStock(); await loadTransactions();
-    form.reset();
+function populateItemSelect(){
+  const sel=document.getElementById('item'); sel.innerHTML='';
+  stockData.forEach(s=>sel.innerHTML+=`<option>${s.Item}</option>`);
+}
+
+// Login unlock
+function login(){
+  const id=document.getElementById('userId').value.trim();
+  const password=document.getElementById('password').value.trim();
+  if(USERS.some(u=>u.id===id && u.password===password)){
+    document.getElementById('loginSection').style.display='none';
+    document.getElementById('adminSection').classList.remove('hidden');
+    loadStock(); loadTransactions();
+  } else alert(t[lang].invalid);
+}
+
+// Add / Update Stock manually
+document.getElementById('stockForm').onsubmit=async function(e){
+  e.preventDefault();
+  const name=document.getElementById('newItem').value.trim();
+  const qty=parseInt(document.getElementById('newQty').value);
+  const existing=stockData.find(s=>s.Item===name);
+  if(existing) existing.ManualQty+=qty;
+  else stockData.push({Item:name,ManualQty:qty});
+  await fetch(BASE+'/stock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stockData)});
+  renderStock(); populateItemSelect(); e.target.reset();
+};
+
+// Delivery / Return Entry
+document.getElementById('entryForm').onsubmit=async function(e){
+  e.preventDefault();
+  const entry={
+    id:Date.now().toString(),
+    iqama:iqama.value,
+    emp:emp.value,
+    date:date.value,
+    item:item.value,
+    qty:parseInt(qty.value),
+    client:client.value,
+    note:note.value
   };
-}
+  const stockRow=stockData.find(s=>s.Item===entry.item);
+  const delivered=transactions.filter(tr=>tr.item===entry.item).reduce((a,b)=>a+b.qty,0);
+  const available=stockRow.ManualQty - delivered;
+  if(entry.qty>available){alert('Not enough stock'); return;}
+  transactions.push(entry);
+  await fetch(BASE+'/transactions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(entry)});
+  renderTransactions(); renderStock(); e.target.reset();
+};
 
-function updateSizes(){
-  const itemSel=document.getElementById('item');
-  const sizeSel=document.getElementById('size');
-  const item=itemSel.value;
-  const sizes=stockData.filter(r=>r.Item===item).map(r=>r.Size);
-  sizeSel.innerHTML=''; sizes.forEach(s=>sizeSel.innerHTML+=`<option>${s}</option>`);
-}
-
+// Delete transaction
 async function deleteTrans(id){
+  const idx=transactions.findIndex(t=>t.id===id); if(idx>-1) transactions.splice(idx,1);
   await fetch(BASE+'/transactions/'+id,{method:'DELETE'});
-  await loadStock(); await loadTransactions();
+  renderTransactions(); renderStock();
 }
 
-// Export CSV
-function exportStock(){
-  let csv='Item,Description,ManualQty,Delivered,Available\n';
-  stockData.forEach(r=>csv+=`${r.Item},${r.desc||''},${r.manualQty||0},${r.delivered||0},${r.available||0}\n`);
-  downloadCSV(csv,'full_stock.csv');
-}
-
+// Export report
 function exportReport(){
-  let csv='Iqama,Name,Date,Item,Size,Qty,Client,Note\n';
-  transactions.forEach(tn=>csv+=`${tn.iqama},${tn.emp},${tn.date},${tn.item},${tn.size},${tn.qty},${tn.client},${tn.note}\n`);
-  downloadCSV(csv,'delivery_report.csv');
+  let csv='ID,Iqama,Name,Date,Item,Qty,Client,Note\n';
+  transactions.forEach(tn=>csv+=`${tn.id},${tn.iqama},${tn.emp},${tn.date},${tn.item},${tn.qty},${tn.client},${tn.note}\n`);
+  const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='delivery_report.csv'; a.click(); URL.revokeObjectURL(url);
 }
 
-function downloadCSV(csv,name){
-  const blob=new Blob([csv],{type:'text/csv'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
-}
-
-// Initial load
 loadStock();
-loadTransactions();
 </script>
-
 </body>
 </html>
